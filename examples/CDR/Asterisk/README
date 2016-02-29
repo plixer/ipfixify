@@ -1,0 +1,58 @@
+-----------------------------------------------------------------------------
+                            IPFIXIFY ASTERISK CDR
+-----------------------------------------------------------------------------
+
+Author      : Plixer International, Inc.
+Description : Send Asterisk CDR records to an IPFIX Collector
+
+-----------------------------------------------------------------------------
+
+Implementation Steps:
+
+1. Copy ipfixify.cfg to the same directory as the IPFIXify agent files
+
+2. Modify the ipfixify.cfg file and change the collector directive at
+   the top to the COLLECTOR_IP:PORT of the IPFIX Collector.
+
+3. Verify that Asterisk is exporting a CDR csv file.
+
+4. To verify that the data is being exported properly, run the
+   following command from the IPFIXify directory:
+
+   COMPILED:
+
+   ipfixify.exe --file=path/cdr.csv \
+   	--config=path/ipfixify.cfg --verbose
+   
+   UNCOMPILED:
+
+   perl ipfixify.pl --file=path/cdr.csv \
+   	--config=path/ipfixify.cfg --verbose
+   
+   Specify the absolute path to both the cdr.csv and ipfixify.log
+   files
+   
+4. IPFIXify can (but not required) start as a service to automatically
+   collect data whenever the system restarts.
+   
+   It's highly recommended to compile IPFIXify.exe into a binary
+   
+   Windows:
+
+      ipfixify.exe --install auto --name="SVCNAME" \
+            --file=path/cdr.csv --config=path/ipfixify.cfg
+
+   Linux:
+   
+      ipfixify.exe --autostart=y --name="SVCNAME" \
+            --file=path/cdr.csv --config=path/ipfixify.cfg
+
+   Replace SVCNAME with a short desciptive name and specify the
+   absolute path to the ipfixify.cfg and cdr.csv files. All 4
+   parameters are required.
+
+Once IPFIXify is running, reference the IPFIX Collector's Application
+to report on the data.
+
+If you need an IPFIX Collector, visit www.plixer.com for more
+information.

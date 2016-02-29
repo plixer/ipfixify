@@ -1,0 +1,53 @@
+-----------------------------------------------------------------------------
+                           IPFIXIFY HONEYNET MODE
+-----------------------------------------------------------------------------
+
+Author      : Plixer International, Inc.
+Description : Honeynet Logging Mode
+
+-----------------------------------------------------------------------------
+
+Implementation Steps:
+
+1. Verify Honeyd is running and configured properly.
+
+2. To verify that the data is being exported properly, run the
+   following command from the IPFIXify directory:
+
+   COMPILED:
+   
+   ipfixify.exe --honeynet COLLECTOR:PORT --sendto SYSLOG:PORT
+   	--file path/to/connect.log
+   
+   UNCOMPILED:
+   
+   perl ipfixify.pl --honeynet COLLECTOR:PORT --sendto SYSLOG:PORT
+   	--file path/to/connect.log
+
+3. IPFIXify can (but not required) start as a service to automatically
+   collect data whenever the system restarts.
+   
+   It's highly recommended to compile IPFIXify.exe into a binary
+   
+   Windows:
+
+      ipfixify.exe --install auto --name="SVCNAME" 
+      	--honeynet COLLECTOR:PORT --sendto SYSLOG:PORT
+   	--file path/to/connect.log
+
+   Linux:
+   
+      ipfixify.exe --autostart=y --name="SVCNAME"
+      	--honeynet COLLECTOR:PORT --sendto SYSLOG:PORT
+   	--file path/to/connect.log
+
+   Replace SVCNAME with a short desciptive name, change COLLECTOR:PORT
+   to the IPFIX Collector's IP ADDRESS and listening PORT. Change SYSLOG:PORT
+   to the IP ADDRESS and listening PORT of a syslog server. All three
+   parameters are required.
+
+Once IPFIXify is running, reference the IPFIX Collector's Application
+to report on the data.
+
+If you need an IPFIX Collector, visit www.plixer.com for more
+information.

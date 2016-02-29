@@ -1,0 +1,25 @@
+--- C:/temp/t/mrtg-2.17.4/lib/mrtg2/MRTG_lib.pm	Thu Jan 12 10:29:00 2012
++++ C:/repos/Plixer/ipfixify/trunk/plugins/mrtg/contrib/ipfixify/mrtg-modified/2.17.4/lib/mrtg2/MRTG_lib.pm	Tue Oct 16 13:25:54 2012
+@@ -412,7 +412,10 @@
+        [sub{$_[0] =~ /^(no|[lr][ul])$/i}, sub{"Must be a string of NO, LU, RU, LL, RL"}],
+ 
+        'timestrfmt[]' => 
+-       [sub{1}, sub{"Internal Error"}] #what ever the user chooses.
++       [sub{1}, sub{"Internal Error"}], #what ever the user chooses.
++
++       'groups[]' =>
++       [sub{1}, sub{"Internal Error"}]
+ );
+ 
+ 
+@@ -851,8 +854,8 @@
+     } else {
+         $cfg->{interval} = 5;
+     }
+-    unless ($$cfg{logformat} eq 'rrdtool') {
+-        # interval has to be 5 minutes at least without userrdtool
++    unless ($$cfg{logformat} eq 'rrdtool' || $opts->{'ipfixify'}) {
++        # interval has to be 5 minutes at least without userrdtool or ipfixify
+         if ($$cfg{interval} < 5.0) {
+             die "ERROR: CFG Error in \"Interval\": should be at least 5 Minutes (unless you use rrdtool)";
+         }

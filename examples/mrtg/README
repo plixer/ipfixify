@@ -1,0 +1,81 @@
+-----------------------------------------------------------------------------
+                              IPFIXIFY FOR MRTG
+-----------------------------------------------------------------------------
+
+WHAT ARE THE ADVANTAGES OF IPFIXIFY?
+
+- centralize your MRTG data with a deployed NetFlow/IPFIX solution
+
+- ability to modify your MRTG configs to include a grouping context
+  This will allow users to categorize each configuration file
+
+- Generate reports based on filtering in some NetFlow/IPFIX solutions
+  
+  For example:
+  
+        Target[port-3-inet-rtr]: 3:public@192.168.1.1:
+        MaxBytes[port-3-inet-rtr]: 193000
+    --> Groups[port-3-inet-rtr]: Internet,Pipes,Routers 
+        Title[port-3-inet-rtr]: Port 3 on inet-rtr
+        PageTop[port-3-inet-rtr]: <h1>Port 3 on inet-rtr</h1>
+
+  More than one group can be specified by separating each with a comma.
+
+- Option to run MRTG every minute instead of every 5 minutes.
+
+  NOTE: this can affect any existing implementation you have and is
+        only recommended for MRTG environments that are primarily for
+        sending MRTG data to an IPFIX Collector.
+
+-----------------------------------------------------------------------------
+
+CONFIGURING MRTG:
+
+This section assumes you're running MRTG 2.17.4. If you are running a
+different version, consider the DIFF files mentioned below.
+
+IPFIXify was designed around the fact that users have been running
+MRTG with one or more established mrtg.cfg files. Therefore, it was
+our intent to minimize changes that could affect the existing
+implementation.
+
+For those without any manual modifications to the files mentioned
+below, a user could simply back up these files and overwrite them with
+the ones in the contrib folder:
+
+  CONTRIB/IPFIXIFY/ DIR                          BACKUP AND OVERWRITE
+  --------------------------------------------------------------------
+  mrtg-modified/2.17.4/bin/mrtg               -> bin/mrtg
+  mrtg-modified/2.17.4/lib/mrtg2/MRTG_lib.pm  -> lib/mrtg2/MRTG_lib.pm
+  mrtg-modified/2.17.4/lib/mrtg2/ipfixify.pm  -> lib/mrtg2/ipfixify.pm
+
+NOTE: ipfixify.pm doesn't exist and it is simply a copy from the
+      contrib folder to the lib/mrtg2 directory.
+      
+Once you copy the ipfixify.pm file over, you will need to edit it and
+change the IP Address and port to where IPFIXify is installed at lines
+145 and 146.
+
+Additionally, you will need to install the Net::Syslog module.
+
+If you have a modified version of MRTG or a different version, you can
+see the differences between the files mentioned by looking at the
+mrtg-diffs directory.
+
+Once these steps have been completed successfully, restart mrtg and
+include the command line parameter --ipfixify
+IPFIXIFYAGENT_IP:IPFIXIFYAGENT_PORT.
+
+  For example:
+
+    perl.exe mrtg mrtg.cfg --ipfixify 10.1.1.10:515
+
+-----------------------------------------------------------------------------
+
+AN IMPORTANT NOTE:
+
+A big thanks to all mentioned on
+http://oss.oetiker.ch/mrtg/cast/index.en.html for your efforts in
+creating and maintaining such a great tool!
+
+Thank you from the plixer.com team!

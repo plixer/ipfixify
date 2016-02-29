@@ -1,0 +1,69 @@
+-----------------------------------------------------------------------------
+                        IPFIXIFY GENERIC NAME/VALUES
+-----------------------------------------------------------------------------
+
+Author      : Plixer International, Inc.
+Description : Send Name/Values to trend
+
+-----------------------------------------------------------------------------
+
+Implementation Steps:
+
+1. The implementation does not require a ipfixify.cfg configuration
+   file as it uses IPFIXify's stream mode.
+
+2. Verify there is no other syslog listeners running on the desired
+   UDP port. The default syslog port is UDP 514.
+
+3. To verify that the data is being exported properly, run the
+   following command from the IPFIXify directory:
+
+   COMPILED:
+   
+   ipfixify.exe --stream IP:PORT --sentTo COLLECTOR:PORT --verbose
+
+   UNCOMPILED:
+   
+   perl ipfixify.pl --stream IP:PORT --sentTo COLLECTOR:PORT --verbose
+
+4. IPFIXify can (but not required) start as a service to automatically
+   collect data whenever the system restarts.
+   
+   It's highly recommended to compile IPFIXify.exe into a binary
+   
+   Windows:
+
+      ipfixify.exe --install auto --name="SVCNAME" --stream 10.1.1.5:514
+
+   Linux:
+   
+      ipfixify.exe --autostart=y --name="SVCNAME" --stream 10.1.1.5:514
+
+   Replace SVCNAME with a short desciptive name, change 10.1.1.5 to the
+   IP address that ipfixify should listen for syslogs, and change 514 to
+   the desired port. All three parameters are required.
+
+-----------------------------------------------------------------------------
+
+For Developer's who wish to stream data to IPFIXify for this mode, here is
+an example block of code written in PERL.
+
+$syslog = new Net::Syslog(
+	Name       => 'IPFIXIFY',
+	Pid        => 11,
+	Facility   => 'local0',
+	Priority   => '1',
+	SyslogPort => <PORT_STREAM_IS_RUNNING>,
+	SyslogHost => '<IP_ADDRESS_OF_COLLECTOR>',
+);
+
+$message = substr( 'NAME:-:VALUE', 0, 1024 );
+$syslog->send($message);
+
+-----------------------------------------------------------------------------
+
+Once IPFIXify is running, reference the IPFIX Collector's Application
+to report on the data.
+
+If you need an IPFIX Collector, visit www.plixer.com for more
+information.

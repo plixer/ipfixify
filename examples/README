@@ -1,0 +1,29 @@
+IPFIXify is based around the IPFIX Protocol. A firm understanding of
+PENs, templates, elements, flows, option templates, and data templates
+will be required to take full advantage of IPFIXify.
+
+For more information on the IPFIX Protocol, visit
+https://en.wikipedia.org/wiki/IP_Flow_Information_Export
+
+This directory consists of a list of examples of how IPFIXify can be
+used as is, or referenced as examples to build a custom
+implementation.
+
+It is highly recommended that if you decide to build your own
+configurations, that you acquire a PEN (Private Enterprise Number).
+
+The application can be found at
+http://pen.iana.org/pen/PenApplication.page
+
+Another consideration is the IPFIX Collector that will receive data
+from IPFIXify will likely require support for any IPFIX elements that
+are included in the configuration file outside the standard
+elements. Please contact the vendor of the IPFIX collector for more
+information.
+
+Visit www.plixer.com if you need an IPFIX Collector to experiment
+with, or use in a production setting.
+
+For full disclosure, IPFIXify is a application orginally conceived and
+developed by Plixer International, Inc. that has since been released
+as open source. Happy IPFIXifying!

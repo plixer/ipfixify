@@ -1,0 +1,51 @@
+--- C:/temp/t/mrtg-2.17.4/bin/mrtg	Thu Jan 12 10:29:06 2012
++++ C:/repos/Plixer/ipfixify/trunk/plugins/mrtg/contrib/ipfixify/mrtg-modified/2.17.4/bin/mrtg	Tue Oct 16 15:06:18 2012
+@@ -156,7 +156,7 @@
+     my %opts; 
+     my $EXITCODE = 0;
+     
+-    GetOptions(\%opts, 'user=s', 'group=s', 'lock-file=s','confcache-file=s','logging=s', 'check', 'fhs', 'daemon',  'pid-file=s','debug=s', 'log-only') or die "Please use valid Options\n";
++    GetOptions(\%opts, 'user=s', 'group=s', 'lock-file=s','confcache-file=s','logging=s', 'check', 'fhs', 'daemon',  'pid-file=s','debug=s', 'log-only', 'ipfixify=s') or die "Please use valid Options\n";
+ 
+     if (defined $opts{debug}){
+         @main::DEBUG = split /\s*,\s*/, $opts{debug};
+@@ -482,6 +482,29 @@
+ 		debug('base', "Disable Graph and HTML generation");
+ 	    }
+ 
++   	if (defined $opts{'ipfixify'}){
++			eval {
++				require ipfixify;
++				ipfixify->import();
++			};
++			
++			if ($@) {
++				print "$@\n";
++				warn "\nIPFIXify option used, but setup is incomplete!\n".
++					"See contrib/ipfixify/README-IPFIXIFY for details.\n";
++			} else {
++				my ($ip, $port) = split (/:/, $opts{'ipfixify'});
++				
++				if ($ip =~ m/^([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])\.([01]?\d\d?|2[0-4]\d|25[0-5])$/
++					&& $port =~ m/\d/ && $port < 65535
++				) {
++					&ipfixify::logDetails(
++						'rcfg'		=> \%rcfg,
++						'cfgfile'	=> $cfgfile,
++						'router'	=> $router,
++						'inVal'		=> $cuin->{d}{$router},
++						'outVal'	=> $cuout->{d}{$router},
++						'mrtgTime'	=> $time,
++						'streamIp'	=> $ip,
++						'streamPort'=> $port
++					);
++				} else {
++					warn "\nIPFIXify option has issues ($ip:$port)!\n".
++						"Check the IP and Port used for streaming (e.g. 10.1.1.10:515)\n";
++				}
++			}
++		}
+
+ 	    if ($cfg{logformat} eq 'rateup' and not defined $opts{'log-only'} ){
+ 		debug('base', "Check for Write HTML Pages");
+ 		writehtml($router, \%cfg, \%rcfg,

@@ -1,0 +1,58 @@
+-----------------------------------------------------------------------------
+                           IPFIXIFY YOUR SYSLOGS
+-----------------------------------------------------------------------------
+
+Author      : Plixer International, Inc.
+Description : Send Syslogs to an IPFIX Collector
+
+-----------------------------------------------------------------------------
+
+Implementation Steps:
+
+1. Copy ipfixify.cfg to the same directory as the IPFIXify agent files
+
+2. Modify the ipfixify.cfg file and change the collector directive at
+   the top to the COLLECTOR_IP:PORT of the IPFIX Collector.
+
+3. Verify there is no other syslog listeners running on the desired
+   UDP port.  The default syslog port is UDP 514.
+
+4. To verify that the data is being exported properly, run the
+   following command from the IPFIXify directory:
+
+   COMPILED:
+
+   ipfixify.exe --config=path/ipfixify.cfg --syslog IP:PORT --verbose
+   
+   UNCOMPILED:
+
+   perl ipfixify.pl --config=path/ipfixify.cfg --syslog IP:PORT --verbose
+   
+   Specify the absolute path to both the ipfixify.cfg. Change IP:PORT
+   to reflect the IP address and port of the syslog listener. This
+   will likely be the IP of the system where IPFIXify resides and port
+   514.
+   
+4. IPFIXify can (but not required) start as a service to automatically
+   collect data whenever the system restarts.
+   
+   It's highly recommended to compile IPFIXify.exe into a binary
+   
+   Windows:
+
+      ipfixify.exe --install auto --name="SVCNAME" \
+          --config=path/ipfixify.cfg --syslog IP:PORT
+
+   Linux:
+   
+      ipfixify.exe --autostart=y --name="SVCNAME" \
+          --config=path/ipfixify.cfg --syslog IP:PORT
+
+   Replace SVCNAME with a short desciptive name and specify the
+   absolute path to the ipfixify.cfg. Change IP:PORT to reflect the IP
+   address and port of the syslog listener. This will likely be the IP
+   of the system where IPFIXify resides and Port 514. All 4 parameters
+   are required.
+
+Once IPFIXify is running, reference the IPFIX Collector's Application
+to report on the data.

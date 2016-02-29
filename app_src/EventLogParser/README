@@ -1,0 +1,54 @@
+EventLogParser.dll
+-----------------------------------------------------------------------------
+
+This file is responsible for connecting to a windows machine and
+retrieving eventlogs. The DLL works in conjunction with the
+lib/Plixer/Eventlog.pm module. A more detailed example file is found in
+app_src\EventLogParser\x64\Debug\sample.pl
+
+Here are some basics on how it works:
+
+1. Connect to the local or remote system by passing login credentials:
+
+   # debugFlags | 1 = verbose, 0 to silent
+   $eventLog = Plixer::EventLog->new(
+     $ipOfHost,
+     $userName,
+     $password,
+     $debugFlag
+   );
+
+2. Determine the most recent record number in the specified $log
+   (Application|Security|System)
+
+   $rec = $eventLog->get_last_record_id($log)
+  
+3. Grab the last 100 events from the System EventLog.
+
+   my ($stdout, $stderr) = $eventLog->parse
+      (
+	eventlog => $log,       # Log name (e.g. Application)
+	csv => [1|0],           # 1=CSV otherwise assume JSON
+	startrec => $rec - 100, # start at record X, blank starts from oldest
+ 	endrec => $rec,         # end record number, blank assumes newest
+	eventfilter => []       # array of eventIDs to filter, []= no filter
+      );
+
+4. process the eventlogs from the $stdout, errors will be in $stderr
+
+   foreach (split (/\|\|/, $stdout))
+      {
+        my $obj = $json->decode($_);
+      	print Dumper $obj;
+      }
+
+5. Now go forth and codify!
+
+-----------------------------------------------------------------------------
+
+To Build EventLogParser.dll from Source
+
+1. Open Visual Studio 2012
+2. In Solution Configurations, make sure you're building the release target.
+3. Right click on EventLogParser project, select 'Build' 
+4. The dll will be compiled in the 'Release' directory
