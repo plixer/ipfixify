@@ -754,7 +754,7 @@ sub pollSysMetricsHost {
 		$machineID
 	);
 
-	$fn = $0;
+	$fn = 'ipfixify.exe';
 
 	if ($^O eq 'MSWin32') {
 		$user = undef;
