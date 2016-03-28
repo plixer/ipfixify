@@ -1,8 +1,7 @@
-PLIXER_BASE=/home/plixer/repos/Plixer
+PLIXER_BASE=~/repos/ipfixify
 
 cd $PLIXER_BASE/ipfixify/trunk
-svn up --accept theirs-full
-
+mkdir -p bin/
 make clean
 rm -f bin/ipfixify.exe
 perl Makefile.PL

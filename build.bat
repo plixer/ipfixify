@@ -1,7 +1,5 @@
 @echo off
-cd \repos\Plixer\ipfixify\trunk
-svn up --accept theirs-full
-
+mkdir bin
 del bin\ipfixify.exe
 dmake clean
 makefile.pl

@@ -5,6 +5,7 @@ package ipfixify::definitions;
 use Exporter;
 use FDI::InformationModel;
 use feature qw(switch);    # For given/when syntax, perldoc perlsyn.
+no warnings "experimental::smartmatch";
 use strict;
 
 our ($VERSION);

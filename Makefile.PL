@@ -18,66 +18,46 @@ package MY;
 sub postamble {
     my ($copy_rule, $trim, $compiler, $majorVersion, $betaAplha);
     my (@svn);
-    my (%svn);
 
     $copy_rule = qq{\$(NOECHO) \$(NOOP)};
     #$trim = '--trim '.join (' --trim ', qw ());
 
-    # Find Max revision number
-    open(my $svn_info, '-|', 'svn -R info');
-    my $max_rev_num = 0;
-    while (<$svn_info>) {
-	next unless /^Last Changed Rev:/;
-	if( /.*:\s*(\d+)/ ) {
-	    $max_rev_num = $1 if ($1 > $max_rev_num);
-	}
-    }
-    print "$max_rev_num\n";
-
     for my $src (<app_src/*.pl>) {
-	my $target = $src;
-	$target =~ s#app_src/(.*)\.pl#$1#g;
-	my $exe = $src;
-	$exe = "bin/${target}.exe";
-	$compiler = $^O eq 'MSWin32' ? 'perlsvc' : 'perlapp';
+		my $target = $src;
+		$target =~ s#app_src/(.*)\.pl#$1#g;
+		my $exe = $src;
+		$exe = "bin/${target}.exe";
+		$compiler = $^O eq 'MSWin32' ? 'perlsvc' : 'perlapp';
 
-	my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
-	$year-=100;
-	$mon++;
+		my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) =
+		  localtime();
 
-	$majorVersion = "$year.$mon.$mday";
-	$betaAlpha = '';
+		my $buildTime = localtime();
 
-	@svn = split (/\n/, `svn info ./$src`);
+		$year-=100;
+		$mon++;
 
-	foreach (@svn) {
-	    my ($key, $info) = split (/: /, $_);
-	    $svn{$key} = $info;
-	}
+		$majorVersion = "$year.$mon.$mday";
+		$betaAlpha = '';
 
-	# THIS BLOCK TELLS US THE AVAILABLE OUTFIELD FIELDS
-	#foreach (keys (%svn)) {
-	#	print qq {$_ = $svn{$_}\n};
-	#}
-
-	my $spinNumber = $max_rev_num || $svn{'Last Changed Rev'};
-	open (my $ver_fh, ">version.info");
-	print $ver_fh qq {
-\$productBuild = '$svn{'Text Last Updated'}';
-\$productName = 'IPFIXify (TM) v${majorVersion}.$spinNumber $betaAlpha';
+		my $spinNumber = ""; # ".$hour$min$sec";
+		open (my $ver_fh, ">version.info");
+		print $ver_fh qq {
+\$productBuild = '$buildTime';
+\$productName = 'IPFIXify (TM) v${majorVersion}${spinNumber} $betaAlpha';
 \$author = 'Business Aware, Network Secure (TM)';
 \$website = 'Need an IPFIX Collector? Download Scrutinizer at http://www.plixer.com';
 };
-	close($ver_fh);
+		close($ver_fh);
 
-	$targets .= qq {
+		$targets .= qq {
 $target :: $exe
 \t\$(NOECHO) \$(NOOP)
 
 $exe :: \$(FIRST_MAKEFILE) pm_to_blib $src
 \t\$(NOECHO) \$(NOOP)
-\t$compiler $src --force --add Params::Validate::XS --bind EventLogParser.dll[file=./EventLogParser.dll,extract] --bind version.info[text,extract,0444] --nodyndll --blib lib -icon misc/scrutinizer.ico --exe $exe -info ProductName=IPFIXify;FileVersion=${majorVersion}.$svn{'Last Changed Rev'}
-	};
+\t$compiler $src --force --add Params::Validate::XS --bind EventLogParser.dll[file=./EventLogParser.dll,extract] --bind version.info[text,extract,0444] --nodyndll --blib lib -icon misc/scrutinizer.ico --exe $exe -info ProductName=IPFIXify;FileVersion=${majorVersion}
+		};
 	}
 
 	return $targets;
