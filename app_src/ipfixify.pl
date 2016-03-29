@@ -1286,75 +1286,79 @@ sub pollSysMetricsWindowsEndpoint {
 	};
 
 	if ($@) {
-		print qq {$debug_system No Connection Made, skipping\n} if ($verbose);
-		return 0;
+		if ($cfg{'vitals'} || $cfg{'storageAvailability'} || $cfg{'processLists'} || $cfg{'ifStatistics'}) {
+			print qq {$debug_system No Connection Made, skipping\n} if ($verbose);
+			return 0;
+		}
 	}
 
-  ## DETERMINE MACHINE ID ##
-	$machineID = &ipfixify::sysmetrics::getMachineID
-	  (
-	   'handle'	=> $dbh,
-	   'local' => $local,
-	   'computer' => $arg{'computer'}
-	  );
-
-  ## ENDPOINT IDENTITY ##
-	{
-		my (%caption, %name, %version, %maker, %type);
-		my ($flow, $lat, $long);
-
-		($timer, %caption) = &ipfixify::sysmetrics::wmiVitalsGrabber(
-			'dbh'   	=> $dbh,
-			'query'     => 'SELECT * FROM Win32_OperatingSystem',
-			'value'     => 'Caption',
-		);
-
-		($timer, %version) = &ipfixify::sysmetrics::wmiVitalsGrabber(
-			'dbh'   	=> $dbh,
-			'query'     => 'SELECT * FROM Win32_OperatingSystem',
-			'value'     => 'Version',
-		);
-
-		($timer, %name) = &ipfixify::sysmetrics::wmiVitalsGrabber(
-			'dbh'   	=> $dbh,
-			'query'     => 'SELECT * FROM Win32_ComputerSystem',
-			'value'     => 'Name',
-		);
-
-		($timer, %type) = &ipfixify::sysmetrics::wmiVitalsGrabber(
-			'dbh'   	=> $dbh,
-			'query'     => 'SELECT * FROM Win32_ComputerSystem',
-			'value'     => 'SystemType',
-		);
-
-		($timer, %maker) = &ipfixify::sysmetrics::wmiVitalsGrabber(
-			'dbh'   	=> $dbh,
-			'query'     => 'SELECT * FROM Win32_ComputerSystem',
-			'value'     => 'Manufacturer',
-		);
-
-		print "$debug_system (".&formatTimer($timer)." / ".&formatTimer(Time::HiRes::tv_interval($start)).") : EndpointIndentity\n"
-			if ($verbose > 1);
-
-		### Latitude/Longitude ###
-		($lat, $long) = split (/,/, $arg{gps});
-
-		$flow = join
+	if ($cfg{'vitals'} || $cfg{'storageAvailability'} || $cfg{'processLists'} || $cfg{'ifStatistics'}) {
+	  ## DETERMINE MACHINE ID ##
+		$machineID = &ipfixify::sysmetrics::getMachineID
 		  (
-		   ':-:',
-		   $arg{'originator'},
-		   $arg{'computer'},
-		   $machineID,
-		   $name{Name},
-		   $caption{Caption},
-		   $version{Version},
-		   $maker{Manufacturer},
-		   $type{SystemType},
-		   $lat,
-		   $long
+		   'handle'	=> $dbh,
+		   'local' => $local,
+		   'computer' => $arg{'computer'}
 		  );
 
-		push (@{ $flowCache{'114'}{'flows'}{'SPOOL'} }, $flow);
+	  ## ENDPOINT IDENTITY ##
+		{
+			my (%caption, %name, %version, %maker, %type);
+			my ($flow, $lat, $long);
+
+			($timer, %caption) = &ipfixify::sysmetrics::wmiVitalsGrabber(
+				'dbh'   	=> $dbh,
+				'query'     => 'SELECT * FROM Win32_OperatingSystem',
+				'value'     => 'Caption',
+			);
+
+			($timer, %version) = &ipfixify::sysmetrics::wmiVitalsGrabber(
+				'dbh'   	=> $dbh,
+				'query'     => 'SELECT * FROM Win32_OperatingSystem',
+				'value'     => 'Version',
+			);
+
+			($timer, %name) = &ipfixify::sysmetrics::wmiVitalsGrabber(
+				'dbh'   	=> $dbh,
+				'query'     => 'SELECT * FROM Win32_ComputerSystem',
+				'value'     => 'Name',
+			);
+
+			($timer, %type) = &ipfixify::sysmetrics::wmiVitalsGrabber(
+				'dbh'   	=> $dbh,
+				'query'     => 'SELECT * FROM Win32_ComputerSystem',
+				'value'     => 'SystemType',
+			);
+
+			($timer, %maker) = &ipfixify::sysmetrics::wmiVitalsGrabber(
+				'dbh'   	=> $dbh,
+				'query'     => 'SELECT * FROM Win32_ComputerSystem',
+				'value'     => 'Manufacturer',
+			);
+
+			print "$debug_system (".&formatTimer($timer)." / ".&formatTimer(Time::HiRes::tv_interval($start)).") : EndpointIndentity\n"
+				if ($verbose > 1);
+
+			### Latitude/Longitude ###
+			($lat, $long) = split (/,/, $arg{gps});
+
+			$flow = join
+			  (
+			   ':-:',
+			   $arg{'originator'},
+			   $arg{'computer'},
+			   $machineID,
+			   $name{Name},
+			   $caption{Caption},
+			   $version{Version},
+			   $maker{Manufacturer},
+			   $type{SystemType},
+			   $lat,
+			   $long
+			  );
+
+			push (@{ $flowCache{'114'}{'flows'}{'SPOOL'} }, $flow);
+		}
 	}
 
   ## VITALS : CPU, MEMORY, PROCESSES ##
@@ -1641,7 +1645,7 @@ sub pollSysMetricsWindowsEndpoint {
 	);
 
   ## DONE ##
-	$dbh->disconnect();
+	$dbh->disconnect() if ($dbh);
 
 	print "$debug_system (Total Time ".&formatTimer(Time::HiRes::tv_interval($start)).") : Done\n"
 		if ($verbose > 1);

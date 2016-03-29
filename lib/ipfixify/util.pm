@@ -1085,18 +1085,19 @@ sub testSysMetrics {
 			  "reference https://technet.microsoft.com/en-us/library/cc771551.aspx\n".
 				"account needs \"Enable Account\" and \"Remote Enable\" WMI permissions.\n".
 				  "Additional permissions required .. FAILED\n";
-			return;
+			$errors++;
 		}
 
+		eval {
+			$sth = $dbh->prepare('SELECT * FROM Win32_Processor');
+			$sth->execute;
 
-		$sth = $dbh->prepare('SELECT * FROM Win32_Processor');
-		$sth->execute;
+			while (@row = $sth->fetchrow) {
+				$wmi++;
+			}
+		};
 
-		while (@row = $sth->fetchrow) {
-			$wmi++;
-		}
-
-		if (! $wmi) {
+		if (! $wmi || $@) {
 			print "\nThis user cannot get statistics from the host via WMI.\n".
 			  "reference https://technet.microsoft.com/en-us/library/cc771551.aspx\n".
 				"account needs \"Enable Account\" and \"Remote Enable\" WMI permissions.\n\n".

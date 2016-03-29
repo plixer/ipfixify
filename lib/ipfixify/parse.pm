@@ -1534,12 +1534,21 @@ sub userNameFlow {
 	if ($arg{'record'}->[0] eq '4624') {
 		# For Log ins: Event ID 4624
 
-		$user		= $arg{'record'}->[16];
-		$domain		= $arg{'record'}->[18];
-		$loginID	= $arg{'record'}->[20];
-		$loginType	= $arg{'record'}->[11];
-		$srcAddr	= $arg{'record'}->[32];
-		$loginState = $arg{'record'}->[1];
+		if ($arg{'record'}->[15] eq 'Security ID') {
+			$user		= $arg{'record'}->[18];
+			$domain		= $arg{'record'}->[20];
+			$loginID	= $arg{'record'}->[22];
+			$loginType	= $arg{'record'}->[11];
+			$srcAddr	= $arg{'record'}->[34];
+			$loginState = $arg{'record'}->[1];
+		} else {
+			$user		= $arg{'record'}->[16];
+			$domain		= $arg{'record'}->[18];
+			$loginID	= $arg{'record'}->[20];
+			$loginType	= $arg{'record'}->[11];
+			$srcAddr	= $arg{'record'}->[32];
+			$loginState = $arg{'record'}->[1];
+		}
 	}
 
 	if ($arg{'record'}->[0] eq '4634' || $arg{'record'}->[0] eq '4647') {
