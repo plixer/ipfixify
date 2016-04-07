@@ -198,6 +198,10 @@ sub ipfixifyStartup {
 
 	# BUG 15625 (LINUX BUG 18969)
 	if ($smPermTest && $cfg{'mode'} eq 'sysmetrics') {
+		if ($sourceip) {
+			$originator = $sourceip;
+		}
+
 		&ipfixify::util::testSysMetrics
 		  (
 		   cfg			=> \%cfg,
@@ -222,6 +226,10 @@ sub ipfixifyStartup {
 		$ENV{'TMP'} = $tmpdir;
 		$ENV{'TMPDIR'} = $tmpdir;
 		$ENV{'TEMP'} = $tmpdir;
+
+		if ($sourceip) {
+			$originator = $sourceip;
+		}
 
 		if (! $syspoll) {
 			require threads;
