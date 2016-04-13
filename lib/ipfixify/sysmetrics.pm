@@ -117,7 +117,7 @@ ipfixify::sysmetrics
 
 	$pass = &ipfixify::sysmetrics::pingTest(
 		computer		=> $computer,
-		debug_system	=> "+ $shortTime ". sprintf ('%-15s', $computer),
+		debug_system	=> "+ $shortTime ".sprintf('%-15s',$computer),
 		verbose			=> $verbose,
 		pingtimeout		=> $cfg{'pingtimeout'},
 		originator		=> $originator,
@@ -139,34 +139,34 @@ ipfixify::sysmetrics
 	);
 
 	($time, %results) = &ipfixify::sysmetrics::wmiVitalsGrabber(
-		'connect'   => $services,
-		'query'     => 'SELECT Name, FreeSpace FROM Win32_LogicalDisk',
-		'value'     => 'FreeSpace',
-		'label'     => 'Name',
-		'math'      => 'each',
-		'sid'       => [1|0],
-		'factor'    => '1'
+		'connect'  => $services,
+		'query'    => 'SELECT Name, FreeSpace FROM Win32_LogicalDisk',
+		'value'    => 'FreeSpace',
+		'label'    => 'Name',
+		'math'     => 'each',
+		'sid'      => [1|0],
+		'factor'   => '1'
 	);
 
 =back
 
 =head1 DESCRIPTION
 
-This module contains functions related to utility or functions for system
-metrics mode.
+This module contains functions related to utility or functions for
+system metrics mode.
 
 The following functions are part of this module.
 
 =cut
 
-##############################################################################
+#####################################################################
 
 =pod
 
 =head2 createDb
 
-The create DB function creates the database file and appropriate tables for
-the operations of sysMetrics mode.
+The create DB function creates the database file and appropriate
+tables for the operations of sysMetrics mode.
 
 =over 2
 
@@ -186,8 +186,13 @@ sub createDb {
 
 	return if (-e "$ENV{'TMPDIR'}/sysmetrics.db");
 
-	$dbh = DBI->connect("dbi:SQLite:dbname=$ENV{'TMPDIR'}/sysmetrics.db","","",
-		{ RaiseError => 1, AutoCommit => 1});
+	$dbh = DBI->connect
+	  (
+	   "dbi:SQLite:dbname=$ENV{'TMPDIR'}/sysmetrics.db",
+	   "",
+	   "",
+	   { RaiseError => 1, AutoCommit => 1}
+	  );
 
 	$query = qq {
 		CREATE TABLE IF NOT EXISTS `eventlogs` (
@@ -216,7 +221,7 @@ sub createDb {
 	return;
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -278,7 +283,7 @@ sub eventLogConnect {
 	}
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -343,7 +348,17 @@ sub eventLogGrab {
 
 	%arg = (@_);
 
-	@userIdentityEvents = ('4624','4634','4647','6272','6273','6274','6278','6279');
+	@userIdentityEvents =
+	  (
+	   '4624',
+	   '4634',
+	   '4647',
+	   '6272',
+	   '6273',
+	   '6274',
+	   '6278',
+	   '6279'
+	  );
 
 	if ($arg{'cfg'}->{'usernamesOnly'}) {
 		@eventfilter = @userIdentityEvents;
@@ -353,16 +368,19 @@ sub eventLogGrab {
 
 	($stdout, $stderr) = eval {
 		capture {
-			$arg{'elh'}->parse(
-				eventlog => $arg{'eventlog'},
-				eventfilter => \@eventfilter,
-				startrec => $arg{'startrec'},
-			);
+			$arg{'elh'}->parse
+			  (
+			   eventlog => $arg{'eventlog'},
+			   eventfilter => \@eventfilter,
+			   startrec => $arg{'startrec'},
+			  );
 		};
 	};
 
 	if ($stdout =~ m/error: 5/) {
-		print "[Error]: Invalid Login Credentials\n" if ($arg{'verbose'});
+		print "[Error]: Invalid Login Credentials\n"
+		  if ($arg{'verbose'});
+
 		return ($arg{'startrec'}, @records);
 	} elsif ($stderr) {
 		print "$stderr\n" if ($arg{'verbose'});
@@ -412,7 +430,7 @@ sub eventLogGrab {
 	return ($arg{'startrec'}, @records);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -446,8 +464,8 @@ the computer that we're tracking event log IDs
 
 =item * action
 
-an action of GET retreives the last ID. An action of SET will store the last
-read eventlog ID for future polling.
+an action of GET retreives the last ID. An action of SET will store
+the last read eventlog ID for future polling.
 
 =item * eventid
 
@@ -455,8 +473,8 @@ This is the eventid to store when the action is SET
 
 =back
 
-What is returned is the eventid to use as a starting point. New entries will
-return UNDEF
+What is returned is the eventid to use as a starting point. New
+entries will return UNDEF
 
 =cut
 
@@ -466,10 +484,15 @@ sub eventLogLastID {
 
 	%arg = (@_);
 
-	$dbh = DBI->connect("dbi:SQLite:dbname=$ENV{'TMPDIR'}/sysmetrics.db","","",
-		{ RaiseError => 1, AutoCommit => 1});
+	$dbh = DBI->connect
+	  (
+	   "dbi:SQLite:dbname=$ENV{'TMPDIR'}/sysmetrics.db",
+	   "",
+	   "",
+	   { RaiseError => 1, AutoCommit => 1}
+	  );
 
-	$table = $arg{'action'} =~ m/USER/ig ? 'usereventlogs' : 'eventlogs';
+	$table = $arg{action} =~ m/USER/ig ? 'usereventlogs' : 'eventlogs';
 
 	if ($arg{'action'} =~ m/GET/) {
 		$query = qq {
@@ -518,7 +541,7 @@ sub eventLogLastID {
 	return $eventid;
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -602,77 +625,90 @@ sub eventLogParse {
 	$stopwatch = [ Time::HiRes::gettimeofday( ) ];
 
 	&ipfixify::sysmetrics::createDb();
-	$lastrec = &ipfixify::sysmetrics::eventLogLastID(
-		flowcacheid		=> $arg{'flowcacheid'},
-		computer		=> $arg{'computer'},
-		action			=> 'GET'
-	);
+	$lastrec = &ipfixify::sysmetrics::eventLogLastID
+	  (
+	   flowcacheid	=> $arg{'flowcacheid'},
+	   computer		=> $arg{'computer'},
+	   action		=> 'GET'
+	  );
 
 	if (not defined $lastrec) {
 		$lastrec = $arg{'elh'}->get_last_record_id($arg{'eventlog'});
 
-		$lastrec = &ipfixify::sysmetrics::eventLogLastID(
-			flowcacheid		=> $arg{'flowcacheid'},
-			computer		=> $arg{'computer'},
-			action			=> 'SET',
-			eventid			=> $lastrec
-		);
+		$lastrec = &ipfixify::sysmetrics::eventLogLastID
+		  (
+		   flowcacheid	=> $arg{'flowcacheid'},
+		   computer		=> $arg{'computer'},
+		   action		=> 'SET',
+		   eventid		=> $lastrec
+		  );
 	}
 
-	($lastrec, @records) = &ipfixify::sysmetrics::eventLogGrab(
-		eventlog	=> $arg{'eventlog'},
-		elh			=> $arg{'elh'},
-		cfg			=> $arg{'cfg'},
-		tid			=> $arg{'tid'},
-		startrec	=> $lastrec,
-		verbose		=> $arg{'verbose'}
-	);
+	($lastrec, @records) = &ipfixify::sysmetrics::eventLogGrab
+	  (
+	   eventlog	=> $arg{'eventlog'},
+	   elh		=> $arg{'elh'},
+	   cfg		=> $arg{'cfg'},
+	   tid		=> $arg{'tid'},
+	   startrec	=> $lastrec,
+	   verbose	=> $arg{'verbose'}
+	  );
 
 	foreach (@records) {
 		my ($elFlow, $userFlow, $user, $record, $flow, $tmplUsed);
 
-		print "+ Fetching Eventlog ($arg{'eventlog'}) Record $_->{'record_id'}\n"
+		print "+ Fetching Eventlog ($arg{'eventlog'}) ".
+		  "Record $_->{'record_id'}\n"
 			if ($arg{'verbose'} > 1);
 
-		($user, $userFlow, $tmplUsed) = &ipfixify::parse::userNameFlow(
-			'record'		=> $_->{user_meta},
+		($user, $userFlow, $tmplUsed) = &ipfixify::parse::userNameFlow
+		  (
+		   'record'		=> $_->{user_meta},
+		   'computer'	=> $arg{'computer'},
+		   'originator'	=> $arg{'originator'},
+		   'machineID'	=> $arg{'machineID'}
+		  );
+
+		push
+		  (
+		   @{ $arg{'flowCache'}->{$tmplUsed}{'flows'}{'SPOOL'} },
+		   $userFlow
+		  )	if ($userFlow);
+
+		push
+		  (
+		   @{$arg{flowCache}->{$arg{flowcacheid}}{'flows'}{'SPOOL'}},
+		   &ipfixify::parse::fileLine
+		   (
+			'line'			=> $_,
+			'eventlog'		=> uc($arg{'eventlog'}),
+			'cfg'			=> $arg{'cfg'},
 			'computer'		=> $arg{'computer'},
 			'originator'	=> $arg{'originator'},
-			'machineID'		=> $arg{'machineID'}
-		);
-
-		push (@{ $arg{'flowCache'}->{$tmplUsed}{'flows'}{'SPOOL'} }, $userFlow)
-		  if ($userFlow);
-
-		push (@{ $arg{'flowCache'}->{$arg{'flowcacheid'}}{'flows'}{'SPOOL'} },
-			&ipfixify::parse::fileLine(
-				'line'			=> $_,
-				'eventlog'		=> uc($arg{'eventlog'}),
-				'cfg'			=> $arg{'cfg'},
-				'computer'		=> $arg{'computer'},
-				'originator'	=> $arg{'originator'},
-				'machineID'		=> $arg{'machineID'},
-				'verbose'		=> $arg{'verbose'},
-			)
-		) if ($arg{'cfg'}->{'eventlogs'});
+			'machineID'		=> $arg{'machineID'},
+			'verbose'		=> $arg{'verbose'},
+		   )
+		  ) if ($arg{'cfg'}->{'eventlogs'});
 
 		$lastrec = $lastrec < $record->{'record_id'} ? $record->{'record_id'} : $lastrec;
 	}
 
-	$lastrec = &ipfixify::sysmetrics::eventLogLastID(
-		flowcacheid		=> $arg{'flowcacheid'},
-		computer		=> $arg{'computer'},
-		action			=> 'SET',
-		eventid			=> $lastrec
-	);
+	$lastrec = &ipfixify::sysmetrics::eventLogLastID
+	  (
+	   flowcacheid		=> $arg{'flowcacheid'},
+	   computer		=> $arg{'computer'},
+	   action			=> 'SET',
+	   eventid			=> $lastrec
+	  );
 
-	print "+ Current placeholder set on EventLog ($arg{'eventlog'}) Record $lastrec\n"
+	print "+ Current placeholder set on EventLog ".
+	  "($arg{'eventlog'}) Record $lastrec\n"
 		if ($arg{'verbose'} > 1);
 
 	return Time::HiRes::tv_interval( $stopwatch );
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -709,7 +745,8 @@ the collection statistics flows
 
 =back
 
-The resulting machine ID should uniquely identify this name is returned.
+The resulting machine ID should uniquely identify this name is
+returned.
 
 =cut
 
@@ -790,7 +827,7 @@ sub getMachineID {
 	return md5_hex("$uuid:$sid");
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -867,7 +904,7 @@ sub linuxCommandGrabber {
 	}
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -959,7 +996,7 @@ sub linuxInterfaceGrabber {
 	return (Time::HiRes::tv_interval( $stopwatch ), %value);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -1119,7 +1156,7 @@ sub linuxProcessGrabber {
 	return (Time::HiRes::tv_interval( $stopwatch ), %value);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -1287,19 +1324,20 @@ sub netstatDetails {
 	return (Time::HiRes::tv_interval( $stopwatch ), @conns);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
 =head2 pingTest
 
-This function pings system metrics hosts and will also do a connect test.
+This function pings system metrics hosts and will also do a connect
+test.
 
 =over 2
 
 	$pass = &ipfixify::sysmetrics::pingTest(
 		computer		=> $computer,
-		debug_system	=> "+ $shortTime ". sprintf ('%-15s', $computer),
+		debug_system	=> "+ $shortTime ".sprintf('%-15s',$computer),
 		verbose			=> $verbose,
 		pingtimeout		=> $cfg{'pingtimeout'},
 		originator		=> $originator,
@@ -1345,7 +1383,9 @@ sub pingTest {
 	%arg = (@_);
 
 	if (! $arg{'pingtimeout'}) {
-		print "$arg{'debug_system'} DISABLED (SKIPPING)\n" if ($arg{'verbose'});
+		print "$arg{'debug_system'} DISABLED (SKIPPING)\n"
+		  if ($arg{'verbose'});
+
 		return 1;
 	}
 
@@ -1388,23 +1428,31 @@ sub pingTest {
 			$ssh->close() if ($ssh);
 
 			if ($output =~ m/last login/i) {
-				print "$arg{'debug_system'} PASSED\n" if ($arg{'verbose'});
+				print "$arg{'debug_system'} PASSED\n"
+				  if ($arg{'verbose'});
+
 				return 1;
 			} elsif ($output =~ m/permission denied/i) {
-				print "$arg{'debug_system'} FAILED (Login Credentials)\n" if ($arg{'verbose'});
+				print "$arg{debug_system} FAILED (Login Credentials)\n"
+				  if ($arg{'verbose'});
+
 				return 0;
 			} else {
-				print "$arg{'debug_system'} FAILED\n" if ($arg{'verbose'});
+				print "$arg{'debug_system'} FAILED\n"
+				  if ($arg{'verbose'});
+
 				return 0;
 			}
 		}
 	}
 
-	print "$arg{'debug_system'} unsupported OS ERROR\n" if ($arg{'verbose'});
+	print "$arg{'debug_system'} unsupported OS ERROR\n"
+	  if ($arg{'verbose'});
+
 	return 0;
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -1465,25 +1513,24 @@ sub wmiInterfaceGrabber {
 		my $ath = $arg{'dbh'}->prepare("SELECT BytesReceivedPersec, BytesSentPersec, PacketsReceivedPersec, PacketsSentPersec, CurrentBandwidth FROM Win32_PerfRawData_Tcpip_NetworkInterface WHERE Name='$row[0]'");
 		$ath->execute;
 
-		while (my @int = $ath->fetchrow)
-		  {
-			  $value{$row[0]} =
-				{
-				 octets_rx	=> $int[0],
-				 octets_tx	=> $int[1],
-				 packets_rx	=> $int[2],
-				 packets_tx	=> $int[3],
-				 portspeed	=> $int[4],
-				 ifIndex  	=> $row[1],
-				 macaddress	=> $row[2],
-				}
-			}
+		while (my @int = $ath->fetchrow) {
+			$value{$row[0]} =
+			  {
+			   octets_rx	=> $int[0],
+			   octets_tx	=> $int[1],
+			   packets_rx	=> $int[2],
+			   packets_tx	=> $int[3],
+			   portspeed	=> $int[4],
+			   ifIndex  	=> $row[1],
+			   macaddress	=> $row[2],
+			  }
+		  }
 	}
 
 	return (Time::HiRes::tv_interval( $stopwatch ), %value);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -1513,8 +1560,8 @@ The scalar that represents the WMI connection
 
 =item * cpuCount
 
-We need this in order to properly calculate CPU per process. Can get it
-by calling wmiVitalGrabber for
+We need this in order to properly calculate CPU per process. Can get
+it by calling wmiVitalGrabber for
 
 SELECT NumberOfLogicalProcessors FROM Win32_Processor
 
@@ -1559,23 +1606,25 @@ sub wmiProcessGrabber {
 				my $sw = [ Time::HiRes::gettimeofday( ) ];
 				open (my $file, "<:raw", $row[0]->{'ExecutablePath'});
 
-				$sha{exe}{$row[0]->{'ExecutablePath'}} = {
-					host => $arg{'host'},
-					exe => $row[0]->{'ExecutablePath'},
-					sha256 => sha256_hex(<$file>),
-					expiry => time() + 30,
-					calctime => Time::HiRes::tv_interval( $sw )
-				};
+				$sha{exe}{$row[0]->{'ExecutablePath'}} =
+				  {
+				   host => $arg{'host'},
+				   exe => $row[0]->{'ExecutablePath'},
+				   sha256 => sha256_hex(<$file>),
+				   expiry => time() + 30,
+				   calctime => Time::HiRes::tv_interval( $sw )
+				  };
 
 				close($file);
 			}
 
-			$sha{pid}{$row[0]->{'ProcessId'}} = {
-				host => $arg{'host'},
-				exe => $row[0]->{'ExecutablePath'},
-				name => $row[0]->{'Name'},
-				sha256 => $sha{exe}{$row[0]->{'ExecutablePath'}}{sha256},
-			};
+			$sha{pid}{$row[0]->{'ProcessId'}} =
+			  {
+			   host => $arg{'host'},
+			   exe => $row[0]->{'ExecutablePath'},
+			   name => $row[0]->{'Name'},
+			   sha256 => $sha{exe}{$row[0]->{ExecutablePath}}{sha256},
+			  };
 		}
 	}
 
@@ -1592,7 +1641,7 @@ sub wmiProcessGrabber {
 			CommandLine    		=> $row[0]->{'CommandLine'},
 			ExecutablePath 		=> $row[0]->{'ExecutablePath'},
 			HandleCount   		=> $row[0]->{'HandleCount'},
-			ProcessUserName		=> '', # need to execute methods to get .method.getOwner()
+			ProcessUserName		=> '', # execute .method.getOwner()
 			OtherOperationCount => $row[0]->{'OtherOperationCount'},
 			OtherTransferCount	=> $row[0]->{'OtherTransferCount'},
 			PageFileUsage     	=> $row[0]->{'PageFileUsage'} * 1024,
@@ -1657,7 +1706,7 @@ sub wmiProcessGrabber {
 	return (Time::HiRes::tv_interval( $stopwatch ), %value);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -1764,7 +1813,7 @@ sub wmiVitalsGrabber {
 	return (Time::HiRes::tv_interval( $stopwatch ), %value);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 

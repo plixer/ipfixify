@@ -40,7 +40,7 @@ The following functions are part of this module.
 
 =cut
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -76,27 +76,29 @@ sub mainHelp {
 
 	if ($^O eq 'MSWin32') {
 		$svcInstructions =
-			"--install [auto] --name=\"<svcname>\" [--config=<path/tocfg>]\n".
-			"   [--file=<path/tofile> || --syslog IP:PORT || -sysmetrics\n".
-			"    || -stream IP:PORT || -honeynet IP:PORT ]\n\n".
-			"   these options will allow you to add IPFIXify as a service.\n".
-			"   All 4 parameters are required.\n\n";
+			"--install [auto] --name=\"<svcname>\" [--config=<path/cfg>]\n".
+			"  [--file=<path/tofile> || --syslog IP:PORT || -sysmetrics\n".
+			"   || -stream IP:PORT || -honeynet IP:PORT ]\n\n".
+			"  these options will allow you to add IPFIXify as a service.\n".
+			"  All 4 parameters are required.\n\n";
 			"--remove --name=\"<svcname>\"\n\n".
-			"   removes the service for this instance of IPFIXify.";
+			"  removes the service for this instance of IPFIXify.";
 	} else {
 		$svcInstructions =
-			"--autostart=[y|n] --name=\"<svcname>\" --config=<path/tocfg> \n".
-			"   [--file=<path/tofile> || --syslog IP:PORT || -stream IP:PORT\n".
-			"    || -honeynet IP:PORT ]\n\n".
-			"   these options will allow you to add or remove IPFIXify as a service.\n".
+			"--autostart=[y|n] --name=\"<svcname>\" --config=<path/cfg> \n".
+			"  [--file=<path/file> || --syslog IP:PORT || ".
+			"--stream IP:PORT\n".
+			"    || --honeynet IP:PORT ]\n\n".
+			"  these options will allow you to add or remove IPFIXify as ".
+			"a service.\n".
 			"   All 4 parameters are required.";
 	}
 
 	print qq {
 $arg{'version'}
----------------------------------------------------------------------------
+---------------------------------------------------------------------
 Converted machine data into IPFIX flows to send to an IPFIX Collector
----------------------------------------------------------------------------
+---------------------------------------------------------------------
 
 For Wiki and source code, visit https://github.com/plixer/ipfixify
 
@@ -110,39 +112,41 @@ $svcInstructions
 
 --config=<path/to/cfg>
 
-  this parameter specifies the location of the configuration file.
-  If not specified, then ipfixify looks for ipfixify.cfg in the current
+  this parameter specifies the location of the configuration file. If
+  not specified, then ipfixify looks for ipfixify.cfg in the current
   directory.
 
 --credentials=<path/to/cfg>
 
-  If using System Metrics for multiple hosts, this command allows you to
-  embed an encrypted username and password capable of accessing a remote
-  system. The permtest option can be used to test permissions (see below)
+  If using System Metrics for multiple hosts, this command allows you
+  to embed an encrypted username and password capable of accessing a
+  remote system. The permtest option can be used to test permissions
+  (see below)
 
 --debug
 
-  outputs a lot of information on the processes of IPFIXify. Very useful
-  if making your own plugins to see how data is being converted to IPFIX
-  flows.
+  outputs a lot of information on the processes of IPFIXify. Very
+  useful if making your own plugins to see how data is being converted
+  to IPFIX flows.
 
 --import <COLLECTOR_IP_ADDR>:<DB_PORT>
 
-  imports reports and other required information to use the desired plugin.
-  helpful when sharing your plugin with other users.
+  imports reports and other required information to use the desired
+  plugin.  helpful when sharing your plugin with other users.
 
 --permtest
 
   Ex: ./ipfixify.exe --config ./ipfixify-sysmetrics.cfg --sysmetrics
     --psexec ./Psexec.exe --permtest 10.1.5.1
 
-  Used for sysmetrics mode. It allows you to test the permissions needed
-  for sysmetrics to gather data from the specified host (i.e. 10.1.5.1)
+  Used for sysmetrics mode. It allows you to test the permissions
+  needed for sysmetrics to gather data from the specified host
+  (i.e. 10.1.5.1)
 
 --test | --t
 
-  tests the configuration file for errors. No flows will be sent with this
-  option.
+  tests the configuration file for errors. No flows will be sent with
+  this option.
 
 --verbose
 
@@ -161,8 +165,8 @@ $svcInstructions
 
 --honeynet <FLOWCOLLECTOR_IP_ADDR>:<UDP_PORT>
 
-  Ex: ./ipfixify.exe --honeynet 192.168.2.28:2002 --sendto 192.168.2.28:514
-        --file /home/honeynet/connect.log &
+  Ex: ./ipfixify.exe --honeynet 192.168.2.28:2002 --sendto \
+    192.168.2.28:514 --file /home/honeynet/connect.log &
 
     starts honeynet logging mode. Reads the honeynet logs and streams
     alerts and flows to a IPFIX Collector.
@@ -179,16 +183,16 @@ $svcInstructions
     --psexec ./PsExec.exe
 
   Use sysmetrics mode. Requires the --config option. --psexec is only
-  required if the netstatsdetails option in the config file is enabled.
-  currently windows only.
+  required if the netstatsdetails option in the config file is
+  enabled.  currently windows only.
 
----------------------------------------------------------------------------
+---------------------------------------------------------------------
 };
 
 	exit(0);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 

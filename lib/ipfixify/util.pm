@@ -110,14 +110,14 @@ ipfixify::util
 
 =head1 DESCRIPTION
 
-This module contains functions related to utility or CLI functions within
-IPFIXify.
+This module contains functions related to utility or CLI functions
+within IPFIXify.
 
 The following functions are part of this module.
 
 =cut
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -187,7 +187,7 @@ sub determineOriginator {
 	return ($originator, $colCount);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -214,7 +214,8 @@ the raw template column string in FDI format.
 
 =item * flowCache
 
-the current flow cache as a reference where the element Cache is stored
+the current flow cache as a reference where the element Cache is
+stored
 
 =back
 
@@ -244,28 +245,29 @@ sub elementCache {
 
 		$element->{'enterpriseId'} = $element->{'enterpriseId'} eq 'IANA' ? '0' : $element->{'enterpriseId'};
 
-		$arg{'flowCache'}->{'cache'}{'elements'}{'raw'}{$arg{'raw'}} = {
-			'ele'				=> $ele,
-			'elementId'			=> $element->{'elementId'},
-			'dataType'			=> $element->{'dataType'},
-			'dataTypeSemantics'	=> $element->{'dataTypeSemantics'},
-			'enterpriseId'		=> $element->{'enterpriseId'},
-			'length'			=> $element->{'length'},
-			'name'				=> $element->{'name'}
-		};
+		$arg{'flowCache'}->{'cache'}{'elements'}{'raw'}{$arg{'raw'}} =
+		  {
+		   'ele'				=> $ele,
+		   'elementId'			=> $element->{'elementId'},
+		   'dataType'			=> $element->{'dataType'},
+		   'dataTypeSemantics'	=> $element->{'dataTypeSemantics'},
+		   'enterpriseId'		=> $element->{'enterpriseId'},
+		   'length'			    => $element->{'length'},
+		   'name'				=> $element->{'name'}
+		  };
 	}
 
-	return $arg{'flowCache'}->{'cache'}{'elements'}{'raw'}{$arg{'raw'}};
+	return $arg{flowCache}->{cache}{elements}{raw}{$arg{'raw'}};
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
 =head2 findSourceIpAddressInMsg
 
-This function scrutinizes a message to determine who to point the finger of
-blame and store it in the source field.
+This function scrutinizes a message to determine who to point the
+finger of blame and store it in the source field.
 
 =over 2
 
@@ -319,13 +321,14 @@ sub findSourceIpAddressInMsg {
 	return $fingerOfBlame;
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
 =head2 formatShortTime
 
-This function returns a shorthand of localtime for logging/debug purposes
+This function returns a shorthand of localtime for logging/debug
+purposes
 
 =over 2
 
@@ -349,14 +352,14 @@ sub formatShortTime {
 	return "[$abbr[$mon] $mday $hour:$min:$sec]";
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
 =head2 getIpPort
 
-This function parses out a string and determines what sender IP and Port a
-sending or receiving socket should use.
+This function parses out a string and determines what sender IP and
+Port a sending or receiving socket should use.
 
 =over 2
 
@@ -391,7 +394,7 @@ sub getIpPort {
 	return ($ip, $port);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -457,7 +460,7 @@ sub pwdmgr {
 	}
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -511,7 +514,9 @@ sub scrutCfgCredentials {
 
 		$username = $password = $verify = '';
 
-		print "\nHit <Enter> to abort\n\nlocal or domain administrator user name\n(e.g. Domain\\Username or Username): ";
+		print "\nHit <Enter> to abort\n\nlocal or domain ".
+		  "administrator user name\n(e.g. Domain\\Username ".
+			"or Username): ";
 		chomp ($username = <STDIN>);
 
 		$username =~ s/\n|\r|\0//;
@@ -539,28 +544,34 @@ sub scrutCfgCredentials {
 		} elsif ($password eq $verify) {
 			$pwd = 1;
 		} else {
-			print "\n\n* ERROR: Password mismatch, please try again...\n";
+			print "\n\n* ERROR: Password mismatch\n";
 		}
 	}
 
-	$credentials = &ipfixify::util::pwdmgr(
-		'credentials'	=> "$username:$password:",
-		'direction'		=> 'encode'
-	);
+	$credentials = &ipfixify::util::pwdmgr
+	  (
+	   'credentials'	=> "$username:$password:",
+	   'direction'		=> 'encode'
+	  );
 
-	$ini = new Config::IniFiles( -file => $arg{'config'}, -nomultiline => 1);
+	$ini = new Config::IniFiles
+	  (
+	   -file => $arg{'config'},
+	   -nomultiline => 1
+	  );
 
 	if ($ini->setval('options', 'credentials', $credentials)) {
 		$ini->WriteConfig($arg{'config'});
 		print "\n\nDone!\n";
 	} else {
-		print "\n\n* ERROR: Couldn't set new credential. Check permissions!\n";
+		print "\n\n* ERROR: Couldn't set new credential. ".
+		  "Check permissions!\n";
 	}
 
 	exit(0);
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -596,7 +607,10 @@ The IP address:port of the Scrutinizer server.
 
 sub scrutImport {
 	my (%arg);
-	my ($confirm, $db, $dbh, $error, $dberr, $port, $pwd, $storedProcedure, $sth);
+	my (
+		$confirm, $db, $dbh, $error, $dberr, $port, $pwd,
+		$storedProcedure, $sth
+	   );
 
 	%arg = (@_);
 
@@ -625,10 +639,11 @@ sub scrutImport {
 
 	print "$arg{'version'}\n** NOTE **\n\n".
 		"Users can use the import function to add any necessary ".
-		"definitions\nto Scrutinizer to report on the data sent with a ".
-		"particular IPFIXIfy add-on.\n\nSince you are adding to or modifying ".
-		"information in Scrutinizer, it is\nrecommended that you do a ".
-		"complete backup before continuing.\n\n";
+		"definitions\nto Scrutinizer to report on the data sent ".
+		"with a particular IPFIXIfy add-on.\n\nSince you are adding ".
+		"to or modifying information in Scrutinizer, it is\n".
+		"recommended that you do a complete backup before ".
+		"continuing.\n\n";
 
 	print "Do you have a backup and are ready to continue? (y/N) ";
 
@@ -639,7 +654,7 @@ sub scrutImport {
 		exit(0);
 	}
 
-	print "\n+ Attempting to connect to Scrutinizer at $arg{'import'}\n";
+	print "\n+ Attempting to connect to Scrutinizer at $arg{import}\n";
 
 	require Term::ReadKey;
 	Term::ReadKey->import ('ReadMode');
@@ -656,22 +671,27 @@ sub scrutImport {
 
 		$mysqlPass =~ s/\n|\r|\0//;
 
-		$dbh = DBI->connect(
-			"DBI:mysql:database=;host=$db;port=$port",
-			"scrutremote",
-			"$mysqlPass",
-			{
-				PrintError => 0,
-				RaiseError => 0
-			}
+		$dbh = DBI->connect
+		  (
+		   "DBI:mysql:database=;host=$db;port=$port",
+		   "scrutremote",
+		   "$mysqlPass",
+		   {
+			PrintError => 0,
+			RaiseError => 0
+		   }
 		);
 
 		if (DBI->err) {
-			print "\n\nERROR: The password entered does not appear to be ".
-			"correct. Please consult\nthe Scrutinizer documentation or contact ".
-			"technical support for assistance.\n";
+			print "\n\nERROR: The password entered does not appear ".
+			  "to be correct. Please consult\nthe Scrutinizer ".
+				"documentation or contact technical support for ".
+				  "assistance.\n";
 		} else {
-			my ($currentVersion, $installedVersion, $file, $statements, $sth, $spin);
+			my (
+				$currentVersion, $installedVersion, $file,
+				$statements, $sth, $spin
+			   );
 			my (@results, @sql, @statements, @ver);
 
 			@results = $dbh->selectrow_array("SELECT count(*), currentVal FROM plixer.serverprefs WHERE langKey = 'installedVersion'");
@@ -691,8 +711,9 @@ sub scrutImport {
 			);
 
 			if ($spin < 22654) {
-				print "\n\n\n** ERROR: This version of Scrutinizer ($installedVersion) ".
-					"is not compatible with\nIPFIXify. Please upgrade Scrutinizer ".
+				print "\n\n\n** ERROR: This version of Scrutinizer ".
+				  "($installedVersion) is not compatible with\n".
+					"IPFIXify. Please upgrade Scrutinizer ".
 					"to the latest version.\n";
 				exit(0);
 			}
@@ -717,7 +738,7 @@ sub scrutImport {
 				$test = $results[0];
 
 				if ($test) {
-					print "\n** Definitions Exist, nothing to import\n";
+					print "\n** Definitions Exist, nothing to do\n";
 					unlink './ipfixify.sql' if (-e './ipfixify.sql');
 					exit(0);
 				} else {
@@ -728,14 +749,16 @@ sub scrutImport {
 						};
 
 						if ($@ || DBI->err) {
-							print "\n** Error Executing **\nExecuting [$_]\n";
+							print "\n** Error Executing **\n".
+							  "Executing [$_]\n";
 							$dberr++;
 						}
 					}
 					$pwd = 1 unless ($dberr);
 				}
 			} else {
-				print "\n** Error: No Langcheck directive found on first line\n";
+				print "\n** Error: No Langcheck directive found ".
+				  "on first line\n";
 				$dberr++;
 			}
 		}
@@ -743,15 +766,15 @@ sub scrutImport {
 
 	unlink './ipfixify.sql' if (-e './ipfixify.sql');
 
-	print "\nDone! Please restart your Scrutinizer Collector before you send\n".
-		"      IPFIX traffic from this plugin.\n";
+	print "\nDone! Please restart your Scrutinizer Collector ".
+	  "before you send\n      IPFIX traffic from this plugin.\n";
 
 	exit(0);
 
 	return;
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -814,8 +837,8 @@ Path to the PSEXEC.exe utility for system metrics mode.
 
 =item * sourceip
 
-Primarily used to change the interface IP that IPFIXify will report as. The
-IP must exist on the system itself.
+Primarily used to change the interface IP that IPFIXify will report
+as. The IP must exist on the system itself.
 
 =item * honeynet
 
@@ -843,7 +866,8 @@ sub serviceMgr {
 
 	if ($arg{'svcName'} =~ m/\ /) {
 		$arg{'svcName'} =~ s/\ /\_/ig;
-		print "+ Service Name has been converted to '$arg{'svcName'}'\n\n";
+		print "+ Service Name has been converted to ".
+		  "'$arg{'svcName'}'\n\n";
 	}
 
 	if ($^O =~ m/Win32/) {
@@ -864,7 +888,7 @@ sub serviceMgr {
 				}
 
 				if (! -e "$pwd/$arg{'config'}") {
-					print "Error: can't locate $arg{'config'} in $pwd\n";
+					print "Error: can't locate $arg{config} in $pwd\n";
 					exit(0);
 				}
 
@@ -956,14 +980,14 @@ sub serviceMgr {
 	return;
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
 =head2 testPerms
 
-This function verifies the prompt has administrative privileges to perform
-system actions
+This function verifies the prompt has administrative privileges to
+perform system actions
 
 =over 2
 
@@ -981,21 +1005,24 @@ sub testPerms {
 	%arg = (@_);
 
 	eval {
-		open( my $file, '>>', "$ENV{'WINDIR'}/ipfixify.pid" ) || die 'err';
+		open(my $file,'>>',"$ENV{'WINDIR'}/ipfixify.pid") || die 'err';
 		close($file) if $file;
 	};
 
 	if ($@) {
-		print "\n*ERROR* This action requires elevate permissions. Please " . "execute using\n        a command prompt running as " . "Administrator\n\n";
+		print "\n*ERROR* This action requires elevate permissions.".
+		  " Please " . "execute using\n        a command prompt ".
+			"running as " . "Administrator\n\n";
 		exit(0);
 	} else {
-		unlink "$ENV{'WINDIR'}/ipfixify.pid" if -e "$ENV{'WINDIR'}/ipfixify.pid";
+		unlink "$ENV{'WINDIR'}/ipfixify.pid"
+		  if -e "$ENV{'WINDIR'}/ipfixify.pid";
 	}
 
 	return;
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
@@ -1053,12 +1080,14 @@ sub testSysMetrics {
 		if ($^O eq 'MSWin32') {
 			print "\nThis user cannot access $arg{'host'}.\n".
 			  "reference https://technet.microsoft.com/en-us/library/cc771551.aspx\n".
-				"account needs \"Enable Account\" and \"Remote Enable\" WMI permissions.\n".
+				"account needs \"Enable Account\" and ".
+				  "\"Remote Enable\" WMI permissions.\n".
 				  "Additional permissions required .. FAILED\n";
 		} elsif ($^O eq 'linux') {
 			print "\nThis user cannot access $arg{'host'} via SSH.\n".
-			  "verify that the current credentials used are correct for connectivity\n".
-				"Connectivity Test .. FAILED\n";
+			  "verify that the current credentials used are ".
+				"correct for connectivity\n".
+				  "Connectivity Test .. FAILED\n";
 		}
 		$errors++;
 		return;
@@ -1074,17 +1103,19 @@ sub testSysMetrics {
 		  (
 		   computer		=> $arg{'host'},
 		   debug_system	=> '+ T0'.sprintf ('%-4s', ''). sprintf ('%-15s', $arg{'host'}),
-		   verbose			=> 'permtest',
-		   pingtimeout		=> $cfg{'pingtimeout'},
-		   originator		=> $arg{'originator'},
-		   cfg				=> \%cfg
+		   verbose		=> 'permtest',
+		   pingtimeout	=> $cfg{'pingtimeout'},
+		   originator	=> $arg{'originator'},
+		   cfg			=> \%cfg
 		  );
 
 		if (! $pass) {
 			print "\nThis user cannot access $arg{'host'}.\n".
 			  "reference https://technet.microsoft.com/en-us/library/cc771551.aspx\n".
-				"account needs \"Enable Account\" and \"Remote Enable\" WMI permissions.\n".
-				  "Additional permissions required .. FAILED\n";
+				"account needs \"Enable Account\" and ".
+				  "\"Remote Enable\" WMI permissions.\n".
+					"Additional permissions required .. FAILED\n";
+
 			$errors++;
 		}
 
@@ -1098,10 +1129,13 @@ sub testSysMetrics {
 		};
 
 		if (! $wmi || $@) {
-			print "\nThis user cannot get statistics from the host via WMI.\n".
-			  "reference https://technet.microsoft.com/en-us/library/cc771551.aspx\n".
-				"account needs \"Enable Account\" and \"Remote Enable\" WMI permissions.\n\n".
-				  "Additional permissions required .. FAILED\n";
+			print "\nThis user cannot get statistics from the ".
+			  "host via WMI.\nReference ".
+			  "https://technet.microsoft.com/en-us/library/cc771551.aspx\n".
+				"account needs \"Enable Account\" and ".
+				  "\"Remote Enable\" WMI permissions.\n\n".
+					"Additional permissions required .. FAILED\n";
+
 			$errors++;
 		} else {
 			print "\nPASSED\n";
@@ -1180,7 +1214,8 @@ sub testSysMetrics {
 			$LastRec = $events->get_last_record_id($el) - 100;
 
 			if ($LastRec > 0) {
-				print "($arg{'host'}) $el : (last record num $LastRec)\n";
+				print "($arg{'host'}) $el : ".
+				  "(last record num $LastRec)\n";
 
 				(undef, @records) = &ipfixify::sysmetrics::eventLogGrab
 				  (
@@ -1226,33 +1261,44 @@ sub testSysMetrics {
 					if ($secEvent) {
 						print "$el : " . Dumper \%recType;
 					} else {
-						print "$el : No authentication events, username info will not be\n".
-						  "   available until these events are generated. Reference\n".
-							"   \"Step 2: Creating and verifying an advanced audit policy\" in\n".
-							  "   https://technet.microsoft.com/en-us/library/dd408940(v=ws.10).aspx\n".
-								"   to enable Logon/Logoff auditing.\n\n".
-								  "   Additional permissions required .. FAILED\n\n";
+						print "$el : No authentication events, ".
+						  "username info will not be\n".
+						  "   available until these events are ".
+						  "generated. Reference\n".
+						  "   \"Step 2: Creating and verifying an ".
+						  "advanced audit policy\" in\n".
+						  "   https://technet.microsoft.com/en-us/library/dd408940(v=ws.10).aspx\n".
+						  "   to enable Logon/Logoff auditing.\n\n".
+						  "   Additional permissions required .. ".
+						  "FAILED\n\n";
+
 						$warnings++;
 					}
 				}
 
 				if (! $currentRecs) {
 					print "$el : 0 record(s) scanned\n".
-					  "   This user needs to be added to the \"Builtin\\Event Log Readers\" group\n".
-						"   for the domain controller(s).\n\n".
-						  "   Additional permissions required .. FAILED\n\n";
+					  "   This user needs to be added to the ".
+						"\"Builtin\\Event Log Readers\" group\n".
+						  "   for the domain controller(s).\n\n".
+							"   Additional permissions required ".
+							  ".. FAILED\n\n";
+
 					$errors++;
 				} else {
-					print "$el : $currentRecs record(s) scanned .. PASSED\n\n";
+					print "$el : $currentRecs record(s) scanned .. ".
+					  "PASSED\n\n";
 				}
 			}
 		}
 
 		if (! $eventRec) {
 			print "No EventLogs Read!\n".
-			  "This user needs to be added to the \"Builtin\\Event Log Readers\" group\n".
-				"for the domain controller(s).\n\n".
-				  "Additional permissions required .. FAILED\n";
+			  "This user needs to be added to the ".
+				"\"Builtin\\Event Log Readers\" group\n".
+				  "for the domain controller(s).\n\n".
+					"Additional permissions required .. FAILED\n";
+
 			$errors++;
 		}
 	}
@@ -1262,14 +1308,18 @@ sub testSysMetrics {
 
 	eval {
 		open (TEST, ">ipfixify.test");
-		print TEST "This file was created to test write permissions. it can be safely removed.\n";
+		print TEST "This file was created to test write ".
+		  "permissions. it can be safely removed.\n";
+
 		close(TEST);
 	};
 
 	if (! -e "ipfixify.test" || $@) {
 		print "\n$@\n" if ($@);
-		print "\nFile write test failed, Cannot write to current directory!\n".
-		  "additional permissions required .. FAILED\n";
+		print "\nFile write test failed, Cannot write to ".
+		  "current directory!\n".
+			"additional permissions required .. FAILED\n";
+
 		$errors++;
 	} else {
 		print "\nPASSED\n";
@@ -1298,7 +1348,7 @@ sub testSysMetrics {
 	return;
 }
 
-##############################################################################
+#####################################################################
 
 =pod
 
