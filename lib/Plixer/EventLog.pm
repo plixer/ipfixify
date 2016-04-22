@@ -47,7 +47,7 @@ sub get_last_record_id {
 		'EventLogParser', 
 		'GetLatestEventLogRecord', 
 		'PPPPPI', 
-		'N'
+		'Q'
 	);	
 	
 	croak "Error: $^E" if !$getLastRecordId;	

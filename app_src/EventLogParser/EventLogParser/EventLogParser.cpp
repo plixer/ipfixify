@@ -19,7 +19,7 @@
  * RETURNS:
  *     Returns numeric value of the most recent event log record ID
  */
-extern "C" __declspec(dllexport) DWORD __stdcall GetLatestEventLogRecord(LPWSTR server, LPWSTR domain, LPWSTR username, LPWSTR password, LPWSTR logName, INT debug) 
+extern "C" __declspec(dllexport) DWORD64 __stdcall GetLatestEventLogRecord(LPWSTR server, LPWSTR domain, LPWSTR username, LPWSTR password, LPWSTR logName, INT debug) 
 {
 	return ParseEventLogInternal(server, domain, username, password, logName, L"LAST_RECORD", OUTPUT_FORMAT_JSON, debug, MODE_FETCH_LAST_RECORD);
 }
@@ -52,7 +52,7 @@ extern "C" __declspec(dllexport) DWORD __stdcall GetLatestEventLogRecord(LPWSTR 
  *     JSON here. To re-allow XML, simply replace OUTPUT_FORMAT_JSON
  *     with outputFormat, in the line of code, below
  */
-extern "C" __declspec(dllexport) DWORD __stdcall ParseEventLog(LPWSTR server, LPWSTR domain, LPWSTR username, LPWSTR password, LPWSTR logName, LPWSTR query, INT outputFormat, INT debug) 
+extern "C" __declspec(dllexport) DWORD64 __stdcall ParseEventLog(LPWSTR server, LPWSTR domain, LPWSTR username, LPWSTR password, LPWSTR logName, LPWSTR query, INT outputFormat, INT debug) 
 {
 	return ParseEventLogInternal(server, domain, username, password, logName, query, OUTPUT_FORMAT_JSON, debug, MODE_DEFAULT);
 }
@@ -95,9 +95,9 @@ extern "C" __declspec(dllexport) DWORD __stdcall ParseEventLog(LPWSTR server, LP
  *     JSON here. To re-allow XML, simply replace OUTPUT_FORMAT_JSON
  *     with outputFormat, in the line of code, below
  */
-DWORD ParseEventLogInternal(LPWSTR server, LPWSTR domain, LPWSTR username, LPWSTR password, LPWSTR logName, LPWSTR query, INT outputFormat, INT debug, INT mode) {	
+DWORD64 ParseEventLogInternal(LPWSTR server, LPWSTR domain, LPWSTR username, LPWSTR password, LPWSTR logName, LPWSTR query, INT outputFormat, INT debug, INT mode) {	
 	bool getLastRecord = false;
-	DWORD result = 0;
+	DWORD64 result = 0;
 
 	if( debug > DEBUG_L1 ) {
 		wprintf(L"[ParseEventLogInternal]: Attempting to connect to '%s' on domain '%s' using %s:%s...\n", server, domain, username, password);
@@ -140,7 +140,7 @@ DWORD ParseEventLogInternal(LPWSTR server, LPWSTR domain, LPWSTR username, LPWST
 		}
 	}
 
-	// Xreate a remote context to the external server
+	// Create a remote context to the external server
     EVT_HANDLE hRemote = CreateRemoteSession(server, domain, username, password);
 
     if (hRemote != NULL)
@@ -253,9 +253,9 @@ EVT_HANDLE CreateRemoteSession(LPWSTR server, LPWSTR domain, LPWSTR username, LP
  *     mode - last record vs dump results
  *     debug - set to 0 (none) 1 (basic) or 2 (verbose)
  */
-DWORD ProcessResults(EVT_HANDLE hRemote, EVT_HANDLE hResults, int outputFormat, int mode, int debug)
+DWORD64 ProcessResults(EVT_HANDLE hRemote, EVT_HANDLE hResults, int outputFormat, int mode, int debug)
 {
-    DWORD status = ERROR_SUCCESS;
+    DWORD64 status = ERROR_SUCCESS;
     EVT_HANDLE hEvents[CHUNK_SIZE + 1];
     DWORD dwReturned = 0;
 	BOOL completed = FALSE;	
@@ -284,7 +284,7 @@ DWORD ProcessResults(EVT_HANDLE hRemote, EVT_HANDLE hResults, int outputFormat, 
 					wprintf(L"||");
 
 				// Extract event details and output the screen
-				DWORD result = DumpEventInfo(hRemote, hEvents[i], outputFormat, mode, debug);
+				DWORD64 result = DumpEventInfo(hRemote, hEvents[i], outputFormat, mode, debug);
 				
 				// Set flag indicating first record is completed so that
 				// the top of our loop knows to begin printing the separator character
@@ -371,9 +371,9 @@ DWORD ProcessResults(EVT_HANDLE hRemote, EVT_HANDLE hResults, int outputFormat, 
  *
  * REMARKS:
  */
-DWORD DumpEventInfo(EVT_HANDLE hRemote, EVT_HANDLE hEvent, INT outputFormat, INT mode, INT debug)
+DWORD64 DumpEventInfo(EVT_HANDLE hRemote, EVT_HANDLE hEvent, INT outputFormat, INT mode, INT debug)
 {
-    DWORD dwError = ERROR_SUCCESS;
+    DWORD64 dwError = ERROR_SUCCESS;
     DWORD dwBufferSize = 0;
     DWORD dwBufferUsed = 0;
     DWORD dwPropertyCount = 0;
@@ -437,14 +437,14 @@ DWORD DumpEventInfo(EVT_HANDLE hRemote, EVT_HANDLE hEvent, INT outputFormat, INT
 					dwError = GetLastError();
 
 					if( debug >= DEBUG_L2 ) {
-						wprintf( L"[DumpEventInfo] Raw XML: %s\n", pwsBuffer );
+						wprintf( L"[DumpEventInfo]: Raw XML: %s\n", pwsBuffer );
 					}
 
 					// Parse the XML string into our XML reader
 					doc.parse<0>( pwsBuffer );
 
 					if( debug >= DEBUG_L2 ) {
-						wprintf( L"[DumpEventInfo] XML parsing successful\n" );
+						wprintf( L"[DumpEventInfo]: XML parsing successful\n" );
 					}
 
 					// Retrieve the <Event> node
@@ -464,13 +464,23 @@ DWORD DumpEventInfo(EVT_HANDLE hRemote, EVT_HANDLE hEvent, INT outputFormat, INT
 					rapidxml::xml_node<WCHAR> *nodeLevel = nodeSystem->first_node(L"Level");
 
 					if( debug >= DEBUG_L2 ) {
-						wprintf( L"[DumpEventInfo] Extracting XML elements successful\n" );
+						wprintf( L"[DumpEventInfo]: Extracting XML elements successful\n" );
 					}
 
 					// Recall there are two modes. The default mode will parse the event log XML, and the "last record" mode
 					// (called MODE_FETCH_LAST_RECORD) will fetch only the last record and exit afterwards. 
 					if( mode == MODE_FETCH_LAST_RECORD ) {
-						return wcstol( nodeEventRecordID->value(), NULL, 10 );
+						if( debug >= DEBUG_L2 ) {
+							wprintf( L"[DumpEventInfo]: Record ID is '%s'\n", nodeEventRecordID->value() );
+						}
+
+						DWORD64 lastRecord = _wcstoui64( nodeEventRecordID->value(), NULL, 10 );
+
+						if( debug >= DEBUG_L2 ) {
+							wprintf( L"[DumpEventInfo]: Record ID converted to 64-bit number: %I64d\n", lastRecord );
+						}
+
+						return lastRecord;
 					}
 
 					// Extract the publisher name from the <Provider> node
@@ -607,7 +617,7 @@ DWORD DumpEventInfo(EVT_HANDLE hRemote, EVT_HANDLE hEvent, INT outputFormat, INT
 	}
 
 	if( debug >= DEBUG_L2 ) {
-		wprintf( L"[DumpEventInfo] Data dump completed\n" );
+		wprintf( L"[DumpEventInfo]: Data dump completed\n" );
 	}
 
     return dwError;
