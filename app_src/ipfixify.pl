@@ -650,7 +650,8 @@ sub ipfixifyStartup {
 						 $_ eq 'sysmetrics.db' ||
 						 $_ eq '.' ||
 						 $_ eq '..' ||
-						 $_ =~ m/machineid$/i
+						 $_ =~ m/machineid$/i ||
+						 $_ =~ m/pid$/i
 						);
 
 					  my ($expire, $file);
@@ -1014,6 +1015,8 @@ sub pollSysMetricsLinuxEndpoint {
 
 	($arg{'computer'}, $arg{'thread_id'}) =
 	  split (/::/, $arg{'syspoll'});
+
+	$arg{'thread_id'} = 99 if (! $arg{'thread_id'});
 
 	$debug_system = '+ T'.
 	  sprintf ('%-4s', $arg{'thread_id'}).
@@ -1439,6 +1442,8 @@ sub pollSysMetricsWindowsEndpoint {
 
 	($arg{'computer'}, $arg{'thread_id'}) =
 	  split (/::/, $arg{'syspoll'});
+
+	$arg{'thread_id'} = 99 if (! $arg{'thread_id'});
 
 	$debug_system = '+ T'. sprintf ('%-4s', $arg{'thread_id'}).
 		sprintf ('%-15s', $arg{'computer'});
