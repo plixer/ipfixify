@@ -62,7 +62,7 @@ my (@eventLogToGather, @goodList);
 my (
     $config, $eventlog, $filename, $svc, $svcName, $syslog, $stream,
     $version, $testOnly, $verbose, $hostip, $originator, $CwF,
-    $CwFTime, $sysmetrics, $psexec, $syspoll, $sourceip,
+    $CwFTime, $sysmetrics, $psexec, $syspoll, $sourceip, $smProfile,
     $streamCollectors, $queueSysMetricGather, $queueSysMetricDevices,
     $shared_flowCache6, $honeynet, $syslogSend, $smPermTest, $ipinfo
 );
@@ -148,6 +148,7 @@ sub ipfixifyStartup {
        'sysmetrics+'=> \$sysmetrics,
        'permtest=s'	=> \$smPermTest,
        'syspoll=s'	=> \$syspoll,
+	   'profile+'   => \$smProfile,
        'stream=s'	=> \$stream,
        'psexec=s'	=> \$psexec,
        'sendto=s'	=> \$streamCollectors,
@@ -217,6 +218,23 @@ sub ipfixifyStartup {
           );
         exit(0);
     }
+
+    if ($smProfile && $cfg{'mode'} eq 'sysmetrics') {
+		print "\n$version\n";
+
+        if ($sourceip) {
+            $originator = $sourceip;
+        }
+
+		&ipfixify::sysmetrics::profiling
+		  (
+		   config   => $config,
+		   psexec   => $psexec,
+		   cfg		=> \%cfg
+		  );
+
+		exit(0);
+	}
 
     # BUG 15058
     if ($cfg{'usernamesOnly'}) {

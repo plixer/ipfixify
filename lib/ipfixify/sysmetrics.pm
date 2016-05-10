@@ -31,6 +31,7 @@ $VERSION = '1';
 	&linuxProcessGrabber
 	&netstatDetails
 	&pingTest
+	&profiling
 	&wmiInterfaceGrabber
 	&wmiProcessGrabber
 	&wmiVitalsGrabber
@@ -122,6 +123,12 @@ ipfixify::sysmetrics
 		pingtimeout		=> $cfg{'pingtimeout'},
 		originator		=> $originator,
 		cfg				=> \%cfg
+	);
+
+	&ipfixify::sysmetrics::profiling(
+		config  => $config,
+		psexec  => $psexec,
+		cfg		=> \%cfg
 	);
 
 	($timer, %results) = &ipfixify::sysmetrics::wmiInterfaceGrabber(
@@ -1450,6 +1457,177 @@ sub pingTest {
 	  if ($arg{'verbose'});
 
 	return 0;
+}
+
+#####################################################################
+
+=pod
+
+=head2 profiling
+
+This function profiles members configured in the ipfixify.cfg file and gives
+some overall statistics and performance information.
+
+Error codes from Microsoft can be found at
+
+https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382(v=vs.85).aspx
+
+=over 2
+
+	&ipfixify::sysmetrics::profiling(
+	   config   => $config,
+	   psexec   => $psexec,
+	   cfg		=> \%cfg
+	);
+
+=back
+
+The currently supported parameters are:
+
+=over 2
+
+=item * config
+
+the path and file name to the configuration file
+
+=item * psexec
+
+the path and file name to psexec on windows
+
+=item * cfg
+
+A copy of the configuration file
+
+=back
+
+The return output is a profile report.
+
+=cut
+
+sub profiling {
+	my (%arg, %results, %errors);
+	my ($data, $member);
+	my (@errors, @file);
+
+	%arg = (@_);
+
+	foreach (@{$arg{'cfg'}->{members}}) {
+		my ($psexec);
+
+		print "+ profiling $_ ... ";
+
+		if ($arg{psexec}) {
+			$psexec = "--psexec $arg{psexec}";
+		}
+
+		push (@file, `./ipfixify.exe --config $arg{'config'} --syspoll $_ $psexec --verbose --debug`);
+
+		print "Done!\n";
+	}
+
+	chomp(@file);
+
+	foreach (@file) {
+		$_ =~ s/\r|\n|\0//ig;
+
+		if ($_ =~ m/syspoll/i) {
+			my (undef, $device) = split (/--syspoll /, $_);
+			($member, undef) = split (/::/, $device);
+			$results{$member}{'events'}{'total'} = 0;
+			$results{$member}{'errors'}{'status'} = 'OK';
+		}
+
+		if ($_ =~ m/following windows error/i) {
+			my @line = split (/ /, $_);
+			my $error = pop(@line);
+			$error =~ s/\0|\r|\n|\.//ig;
+
+			if ($error eq '5') {
+				$error = '5 (Access Denied)';
+			} elsif ($error eq '1722') {
+				$error = '1722 (rpc server unavailable)';
+			} elsif ($error eq '1753') {
+				$error = '1753 (no more endpoints available '.
+				  'from the endpoint mapper)';
+			} else {
+				$error = "$error (unknown)";
+			}
+
+			$results{$member}{errors}{code} = $error;
+
+			push (@errors, $error) unless ($errors{$error});
+
+			$errors{$error} = 1;
+
+			$results{$member}{'errors'}{'status'} = 'ERROR';
+		}
+
+		if ($_ =~ m/Fetching Eventlog \(SECURITY\)/i) {
+			$results{$member}{'events'}{'total'}++;
+			my @line = split (/ /, $_);
+			$results{$member}{'events'}{'start'} = $line[5]
+			  if (! $results{$member}{'event'}{'start'});
+		}
+
+		if ($_ =~ m/: EventLog \(SECURITY\)/) {
+			$_ =~ s/\s+/\ /ig;
+			my @line = split (/ /, $_);
+			$results{$member}{'events'}{'collect_time'} = $line[5];
+			$results{$member}{'events'}{'collect_time'} =~ s/\)//ig;
+
+			$results{$member}{'events'}{'per_second'} =
+			  int(
+				  $results{$member}{'events'}{'total'} /
+				  $results{$member}{'events'}{'collect_time'}
+				 );
+		}
+	}
+
+	foreach (sort {$results{$b}{events}{total} <=> $results{$a}{events}{total}} keys %results) {
+		$data .=
+		  sprintf('%-16s', $_).
+		  sprintf('%-8s', $results{$_}{errors}{status}).
+		  sprintf('%-7s', int($results{$_}{errors}{code})).
+		  sprintf('%-12s', $results{$_}{'events'}{'start'}).
+		  sprintf('%-10s', $results{$_}{events}{total}).
+		  sprintf('%-8s', $results{$_}{events}{per_second}).
+		  sprintf('%-16s', sec2string($results{$_}{events}{collect_time})).
+		  "\n";
+	}
+
+	if ($data) {
+		print "\n".
+		  sprintf('%-16s', 'Member').
+		  sprintf('%-8s', 'Status').
+		  sprintf('%-7s', 'Err #').
+		  sprintf('%-12s', '1st Rec').
+		  sprintf('%-10s', 'Events').
+		  sprintf('%-8s', '/Sec').
+		  sprintf('%-16s', 'Time').
+		  "\n".
+		  '-'x77 ."\n".
+		  $data.
+		  '-'x77 ."\n".
+		  "\n";
+
+		print "Error Legend: ". Dumper \@errors;
+		print "\n";
+	} else {
+		print "\nNo Results, check configuration and run a permtest first";
+		print " ... Abort!\n\n";
+	}
+
+	return;
+}
+
+sub sec2string {
+	my $T = shift;
+
+	my @out = reverse($T%60, ($T/=60) % 60, ($T/=60) % 24, ($T/=24) );
+	my $out=sprintf "%03dd %02dh %02dm %02ds", @out;
+	$out=~s/^000d |00h |00m //g;
+
+	return $out;
 }
 
 #####################################################################
