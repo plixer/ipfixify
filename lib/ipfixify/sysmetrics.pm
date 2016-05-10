@@ -1512,7 +1512,7 @@ sub profiling {
 	%arg = (@_);
 
 	foreach (@{$arg{'cfg'}->{members}}) {
-		my ($psexec);
+		my ($psexec, $cmdline);
 
 		print "+ profiling $_ ... ";
 
@@ -1520,7 +1520,15 @@ sub profiling {
 			$psexec = "--psexec $arg{psexec}";
 		}
 
-		push (@file, `./ipfixify.exe --config $arg{'config'} --syspoll $_ $psexec --verbose --debug`);
+		$cmdline = "./ipfixify.exe --config $arg{'config'} $psexec --verbose --debug --syspoll $_";
+
+		push 
+		  (
+		   @file,
+		   "----------------------------------\n",
+		   "$cmdline\n",
+		   `$cmdline`
+		  );
 
 		print "Done!\n";
 	}
@@ -1576,14 +1584,32 @@ sub profiling {
 			$results{$member}{'events'}{'collect_time'} =~ s/\)//ig;
 
 			$results{$member}{'events'}{'per_second'} =
-			  int(
-				  $results{$member}{'events'}{'total'} /
-				  $results{$member}{'events'}{'collect_time'}
-				 );
+			  sprintf
+				(
+				 '%.2f',
+				 $results{$member}{'events'}{'total'} /
+				 $results{$member}{'events'}{'collect_time'}
+				);
 		}
 	}
 
 	foreach (sort {$results{$b}{events}{total} <=> $results{$a}{events}{total}} keys %results) {
+		if ($arg{cfg}->{pollTimeOut} < $results{$_}{events}{collect_time}) {
+			push 
+			  (
+			   @errors,
+			   "$_ took longer than pollTimeOut, increase pollTimeOut ($arg{cfg}->{pollTimeOut})"
+			  );
+		}
+
+		if (! $results{$_}{events}{start}) {
+			$results{$_}{errors}{status} = 'No Data';
+			$results{$_}{'events'}{'start'} = '-';
+			$results{$_}{events}{total} = '-';
+			$results{$_}{events}{per_second} = '-';
+			$results{$_}{events}{collect_time} = '-';
+		}
+
 		$data .=
 		  sprintf('%-16s', $_).
 		  sprintf('%-8s', $results{$_}{errors}{status}).
