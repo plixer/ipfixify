@@ -215,6 +215,10 @@ sub encodeData {
 				my $packstr = $element->getPackStr;
 
 				if ( $element->{dataType} =~ /octetArray|string/ ) {
+					if (length($val) >= 255 && $packstr =~ /^z\//) {
+						# var len $element->{dataType} not fully implemented (truncating)
+						$val = substr($val,0,254);
+					}
 					$row{$elementId} = $val;
 				} else {
 					eval {

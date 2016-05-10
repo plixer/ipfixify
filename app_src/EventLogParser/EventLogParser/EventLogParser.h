@@ -30,13 +30,13 @@
 #define DEBUG_L2 2 
 
 // Exports
-extern "C" __declspec(dllexport) DWORD __stdcall ParseEventLog(LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, INT, INT);
-extern "C" __declspec(dllexport) DWORD __stdcall GetLatestEventLogRecord(LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, INT);
+extern "C" __declspec(dllexport) DWORD64 __stdcall ParseEventLog(LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, INT, INT);
+extern "C" __declspec(dllexport) DWORD64 __stdcall GetLatestEventLogRecord(LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, INT);
 
 // Internal functions
-DWORD ParseEventLogInternal(LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, INT, INT, INT);
+DWORD64 ParseEventLogInternal(LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, LPWSTR, INT, INT, INT);
 EVT_HANDLE CreateRemoteSession(LPWSTR, LPWSTR, LPWSTR, LPWSTR);
-DWORD DumpEventInfo(EVT_HANDLE, EVT_HANDLE, INT, INT, INT);
+DWORD64 DumpEventInfo(EVT_HANDLE, EVT_HANDLE, INT, INT, INT);
 LPWSTR GetEventMessageDescription(EVT_HANDLE, EVT_HANDLE);
-DWORD ProcessResults(EVT_HANDLE, EVT_HANDLE, INT, INT, INT);
+DWORD64 ProcessResults(EVT_HANDLE, EVT_HANDLE, INT, INT, INT);
 wchar_t *repl_wcs(const wchar_t*, const wchar_t*, const wchar_t*);
