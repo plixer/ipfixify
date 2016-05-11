@@ -65,7 +65,8 @@ my (
     $version, $testOnly, $verbose, $hostip, $originator, $CwF,
     $CwFTime, $sysmetrics, $psexec, $syspoll, $sourceip, $smProfile,
     $streamCollectors, $queueSysMetricGather, $queueSysMetricDevices,
-    $shared_flowCache6, $honeynet, $syslogSend, $smPermTest, $ipinfo
+    $shared_flowCache6, $honeynet, $syslogSend, $smPermTest, $ipinfo,
+	$smSample, $sampleRecord
 );
 
 $verbose			= 0;
@@ -150,6 +151,8 @@ sub ipfixifyStartup {
 	   'permtest=s'	=> \$smPermTest,
 	   'syspoll=s'	=> \$syspoll,
 	   'profile+'   => \$smProfile,
+	   'sample=s'   => \$smSample,
+	   'record=s'   => \$sampleRecord,
 	   'stream=s'	=> \$stream,
 	   'psexec=s'	=> \$psexec,
 	   'sendto=s'	=> \$streamCollectors,
@@ -205,6 +208,8 @@ sub ipfixifyStartup {
 
 	# BUG 15625 (LINUX BUG 18969)
 	if ($smPermTest && $cfg{'mode'} eq 'sysmetrics') {
+		print "\n$version\n";
+
 		if ($sourceip) {
 			$originator = $sourceip;
 		}
@@ -232,6 +237,20 @@ sub ipfixifyStartup {
 		   config   => $config,
 		   psexec   => $psexec,
 		   cfg		=> \%cfg
+		  );
+
+		exit(0);
+	}
+
+    if ($smSample && $cfg{'mode'} eq 'sysmetrics') {
+		print "\n$version\n";
+
+		&ipfixify::sysmetrics::sampling
+		  (
+		   cfg		=> \%cfg,
+		   debug    => $verbose,
+		   member   => $smSample,
+		   record   => $sampleRecord
 		  );
 
 		exit(0);

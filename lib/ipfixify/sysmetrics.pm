@@ -32,6 +32,7 @@ $VERSION = '1';
 	&netstatDetails
 	&pingTest
 	&profiling
+	&sampling
 	&wmiInterfaceGrabber
 	&wmiProcessGrabber
 	&wmiVitalsGrabber
@@ -129,6 +130,13 @@ ipfixify::sysmetrics
 		config  => $config,
 		psexec  => $psexec,
 		cfg		=> \%cfg
+	);
+
+	&ipfixify::sysmetrics::sampling(
+	   cfg		=> \%cfg,
+       debug    => $debug,
+       member   => $sample,
+       record   => $sampleRecord
 	);
 
 	($timer, %results) = &ipfixify::sysmetrics::wmiInterfaceGrabber(
@@ -1654,6 +1662,128 @@ sub sec2string {
 	$out=~s/^000d |00h |00m //g;
 
 	return $out;
+}
+
+#####################################################################
+
+=pod
+
+=head2 sampling
+
+This function prints the output that IPFIXify expects to process
+usernames. This data directly coorelates to the usernameflow parsing
+function.
+
+=over 2
+
+	&ipfixify::sysmetrics::sampling(
+	   cfg		=> \%cfg,
+       debug    => $debug,
+       member   => $sample,
+       record   => $sampleRecord
+	);
+
+=back
+
+The currently supported parameters are:
+
+=item * cfg
+
+A copy of the configuration file
+
+=item * debug
+
+a flag whether debug mode is enabled
+
+=item * member
+
+the IP address to test
+
+=item * record
+
+the record number of retreive. Absense of this parameter means grab
+last event.
+
+=back
+
+The return output is a sample report.
+
+=cut
+
+sub sampling {
+	my (%arg);
+	my ($eventLog, $json, $log, $mode, $rec, $stdout, $stderr);
+
+	%arg = (@_);
+
+	$json = JSON::XS->new->utf8;
+	$mode = $arg{'debug'} ? '2' : '0';
+
+	$eventLog = Plixer::EventLog->new
+	  (
+	   $arg{member},
+	   $arg{cfg}->{user},
+	   $arg{cfg}->{pwd},
+	   $mode
+	  );
+
+	$log = 'SECURITY';
+	$rec = $arg{record} ? $arg{record} : $eventLog->get_last_record_id($log);
+
+	($stdout, $stderr) = eval {
+		capture {
+			$eventLog->parse
+			  (
+			   eventlog => $log,
+			   startrec => $rec,
+			   endrec => $rec,
+			  );
+		};
+	};
+
+	if ($@) { print "$@\n"; }
+
+	if ($mode eq '2') {
+		print "\n------------------------------\n";
+		print "stdout\n\n$stdout\n";
+		print "\n\stderr\n\n$stderr\n" if ($stderr);
+		return;
+	}
+
+	foreach (split (/\|\|/, $stdout)) {
+		eval {
+			my (@userMeta);
+			my $sliceNumber = '0';
+
+			$_ =~ s/\r|\n|\0|\t/:::/ig;
+
+			foreach my $slice (split (/:::/, $_)) {
+				$slice =~ s/^://;
+				if ($slice) {
+					push (@userMeta, "$sliceNumber : $slice");
+					$sliceNumber++;
+				}
+			}
+
+			$_ =~ s/:::/\ /ig;
+
+			my $obj = $json->decode($_);
+			$userMeta[0] = "0 : $obj->{'event_id'}";
+			$obj->{'logname'} = uc($obj->{'logname'});
+
+			$userMeta[1] = $obj->{'message'} =~ m/an account was successfully logged on/i ? '1 : 0' : '1 : 1';
+
+			push (@{$obj->{'user_meta'}}, @userMeta);
+			print Dumper $obj;
+		}
+	};
+
+    if ($@) {
+        print "\nRAW: $_\n";
+        print "\nERROR: $@\n";
+    }
+
+	return;
 }
 
 #####################################################################

@@ -1632,8 +1632,13 @@ sub userNameFlow {
             $domain		= $arg{'record'}->[18];
             $loginID	= $arg{'record'}->[20];
             $loginType	= $arg{'record'}->[11];
-            $srcAddr	= $arg{'record'}->[32];
             $loginState = $arg{'record'}->[1];
+
+			if ($arg{'record'}->[32] eq 'Source Port') {
+				$srcAddr	= $arg{'record'}->[31];
+			} else {
+				$srcAddr	= $arg{'record'}->[32];
+			}
         }
     }
 
