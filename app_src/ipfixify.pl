@@ -66,7 +66,7 @@ my (
     $CwFTime, $sysmetrics, $psexec, $syspoll, $sourceip, $smProfile,
     $streamCollectors, $queueSysMetricGather, $queueSysMetricDevices,
     $shared_flowCache6, $honeynet, $syslogSend, $smPermTest, $ipinfo,
-	$smSample, $sampleRecord
+	$smSample, $sampleRecord, $lastX, $smProfileMember
 );
 
 $verbose			= 0;
@@ -150,9 +150,11 @@ sub ipfixifyStartup {
 	   'sysmetrics+'=> \$sysmetrics,
 	   'permtest=s'	=> \$smPermTest,
 	   'syspoll=s'	=> \$syspoll,
+	   'member=s'   => \$smProfileMember,
 	   'profile+'   => \$smProfile,
 	   'sample=s'   => \$smSample,
 	   'record=s'   => \$sampleRecord,
+	   'last=i'     => \$lastX,
 	   'stream=s'	=> \$stream,
 	   'psexec=s'	=> \$psexec,
 	   'sendto=s'	=> \$streamCollectors,
@@ -226,7 +228,7 @@ sub ipfixifyStartup {
 	}
 
     if ($smProfile && $cfg{'mode'} eq 'sysmetrics') {
-		print "\n$version\n";
+		print "\n$version\n" unless ($verbose);
 
         if ($sourceip) {
             $originator = $sourceip;
@@ -235,6 +237,8 @@ sub ipfixifyStartup {
 		&ipfixify::sysmetrics::profiling
 		  (
 		   config   => $config,
+		   member   => $smProfileMember,
+		   lastX    => $lastX,
 		   psexec   => $psexec,
 		   cfg		=> \%cfg
 		  );
@@ -243,7 +247,7 @@ sub ipfixifyStartup {
 	}
 
     if ($smSample && $cfg{'mode'} eq 'sysmetrics') {
-		print "\n$version\n";
+		print "\n$version\n" unless ($verbose);
 
 		&ipfixify::sysmetrics::sampling
 		  (
@@ -387,6 +391,7 @@ sub ipfixifyStartup {
 			&pollSysMetricsWindowsEndpoint
 			  (
 			   syspoll		=> $syspoll,
+			   lastX        => $lastX,
 			   gps			=> $gps || '0,0',
 			   verbose		=> $verbose,
 			   originator	=> $originator
@@ -395,6 +400,7 @@ sub ipfixifyStartup {
 			&pollSysMetricsLinuxEndpoint
 			  (
 			   syspoll		=> $syspoll,
+  		       lastX        => $lastX,
 			   gps			=> $gps || '0,0',
 			   verbose		=> $verbose,
 			   originator	=> $originator
@@ -1820,13 +1826,14 @@ sub pollSysMetricsWindowsEndpoint {
 
 				$timer = &ipfixify::sysmetrics::eventLogParse
 				  (
-				   flowcacheid => $cacheid,
-				   eventlog	=> $el,
+				   flowcacheid  => $cacheid,
+				   eventlog	    => $el,
+				   lastX        => $arg{'lastX'},
 				   elh			=> $events,
 				   tid			=> $arg{'thread_id'},
 				   cfg          => \%cfg,
 				   flowCache	=> \%flowCache,
-				   computer	=> $arg{'computer'},
+				   computer	    => $arg{'computer'},
 				   originator	=> $arg{'originator'},
 				   machineID	=> $machineID,
 				   verbose		=> $verbose

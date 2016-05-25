@@ -56,12 +56,12 @@ ipfixify::sysmetrics
 	);
 
 	($lastrec, @records) = &ipfixify::sysmetrics::eventLogGrab(
-		eventlog 	=> 'Application|Security|System',
-		elh 		=> $eventLogHandle,
+		eventlog	=> 'Application|Security|System',
+		elh			=> $eventLogHandle,
 		tid			=> $arg{'tid'},
 		eventfilter => [4634] || '',
-		startrec 	=> $recordNumber,
-		verbose 	=> 1 || 0
+		startrec	=> $recordNumber,
+		verbose		=> 1 || 0
 	);
 
 	$z = &ipfixify::sysmetrics::eventLogLastID(
@@ -73,6 +73,7 @@ ipfixify::sysmetrics
 
 	$timer = &ipfixify::sysmetrics::eventLogParse(
 		flowcacheid => $cacheid,
+		lastX       => $lastX,
 		eventlog	=> $el,
 		elh			=> $events,
 		flowCache	=> \%flowCache,
@@ -128,15 +129,16 @@ ipfixify::sysmetrics
 
 	&ipfixify::sysmetrics::profiling(
 		config  => $config,
+		lastX   => $lastX,
 		psexec  => $psexec,
 		cfg		=> \%cfg
 	);
 
 	&ipfixify::sysmetrics::sampling(
 	   cfg		=> \%cfg,
-       debug    => $debug,
-       member   => $sample,
-       record   => $sampleRecord
+	   debug    => $debug,
+	   member   => $sample,
+	   record   => $sampleRecord
 	);
 
 	($timer, %results) = &ipfixify::sysmetrics::wmiInterfaceGrabber(
@@ -309,12 +311,12 @@ This grabs a list of eventlogs and returns them for processing.
 =over 2
 
 	($lastrec, @records) = &ipfixify::sysmetrics::eventlogGrab(
-		eventlog 	=> 'Application|Security|System',
-		elh 		=> $eventLogHandle,
+		eventlog	=> 'Application|Security|System',
+		elh			=> $eventLogHandle,
 		tid			=> $arg{'tid'},
 		eventfilter => [4634] || '',
-		startrec 	=> $recordNumber,
-		verbose 	=> 1 || 0
+		startrec	=> $recordNumber,
+		verbose		=> 1 || 0
 	);
 
 =back
@@ -569,6 +571,7 @@ to suit IPFIX exports
 
 	$timer = &ipfixify::sysmetrics::eventLogParse(
 		flowcacheid => $cacheid,
+		lastX       => $lastX,
 		eventlog	=> $el,
 		elh			=> $events,
 		tid			=> $arg{'thread_id'},
@@ -589,6 +592,11 @@ The currently supported parameters are:
 
 the flow cache for the eventlog. 1 (System), 2 (Application), 3
 (security)
+
+=item * lastX
+
+the number of eventlogs to go back and gather. This is used for
+profile testing mostly.
 
 =item * eventlog
 
@@ -640,23 +648,29 @@ sub eventLogParse {
 	$stopwatch = [ Time::HiRes::gettimeofday( ) ];
 
 	&ipfixify::sysmetrics::createDb();
-	$lastrec = &ipfixify::sysmetrics::eventLogLastID
-	  (
-	   flowcacheid	=> $arg{'flowcacheid'},
-	   computer		=> $arg{'computer'},
-	   action		=> 'GET'
-	  );
 
-	if (not defined $lastrec) {
+	if ($arg{'lastX'}) {
 		$lastrec = $arg{'elh'}->get_last_record_id($arg{'eventlog'});
-
+		$lastrec = $lastrec - ($arg{'lastX'} - 1);
+	} else {
 		$lastrec = &ipfixify::sysmetrics::eventLogLastID
 		  (
 		   flowcacheid	=> $arg{'flowcacheid'},
 		   computer		=> $arg{'computer'},
-		   action		=> 'SET',
-		   eventid		=> $lastrec
+		   action		=> 'GET'
 		  );
+
+		if (not defined $lastrec) {
+			$lastrec = $arg{'elh'}->get_last_record_id($arg{'eventlog'});
+
+			$lastrec = &ipfixify::sysmetrics::eventLogLastID
+			  (
+			   flowcacheid	=> $arg{'flowcacheid'},
+			   computer		=> $arg{'computer'},
+			   action		=> 'SET',
+			   eventid		=> $lastrec
+			  );
+		}
 	}
 
 	($lastrec, @records) = &ipfixify::sysmetrics::eventLogGrab
@@ -708,17 +722,19 @@ sub eventLogParse {
 		$lastrec = $lastrec < $record->{'record_id'} ? $record->{'record_id'} : $lastrec;
 	}
 
-	$lastrec = &ipfixify::sysmetrics::eventLogLastID
-	  (
-	   flowcacheid		=> $arg{'flowcacheid'},
-	   computer		=> $arg{'computer'},
-	   action			=> 'SET',
-	   eventid			=> $lastrec
-	  );
+	if (! $arg{'lastX'}) {
+		$lastrec = &ipfixify::sysmetrics::eventLogLastID
+		  (
+		   flowcacheid		=> $arg{'flowcacheid'},
+		   computer		=> $arg{'computer'},
+		   action			=> 'SET',
+		   eventid			=> $lastrec
+		  );
 
-	print "+ Current placeholder set on EventLog ".
-	  "($arg{'eventlog'}) Record $lastrec\n"
-		if ($arg{'verbose'} > 1);
+		print "+ Current placeholder set on EventLog ".
+		  "($arg{'eventlog'}) Record $lastrec\n"
+			if ($arg{'verbose'} > 1);
+	}
 
 	return Time::HiRes::tv_interval( $stopwatch );
 }
@@ -806,7 +822,7 @@ sub getMachineID {
 		} else {
 			$sid = &ipfixify::sysmetrics::linuxCommandGrabber
 			  (
-			   ssh 		=> $arg{'handle'},
+			   ssh		=> $arg{'handle'},
 			   command	=> '/bin/cat ~/.ipfixify_machine_id',
 			   local	=> $arg{'local'},
 			   chop		=> 1
@@ -816,7 +832,7 @@ sub getMachineID {
 			if (! $sid) {
 				$sid = &ipfixify::sysmetrics::linuxCommandGrabber
 				  (
-				   ssh 		=> $arg{'handle'},
+				   ssh		=> $arg{'handle'},
 				   command	=> '/bin/cat /proc/sys/kernel/random/uuid > ~/.ipfixify_machine_id',
 				   local	=> $arg{'local'},
 				   chop		=> 1
@@ -824,7 +840,7 @@ sub getMachineID {
 
 				$sid = &ipfixify::sysmetrics::linuxCommandGrabber
 				  (
-				   ssh 		=> $arg{'handle'},
+				   ssh		=> $arg{'handle'},
 				   command	=> '/bin/cat ~/.ipfixify_machine_id',
 				   local	=> $arg{'local'},
 				   chop		=> 1
@@ -1087,7 +1103,7 @@ sub linuxProcessGrabber {
 			$_ =~ s/^\s+//;
 
 			foreach my $match (1..7) {
-                $_ =~ s/\s+/\|/;
+				$_ =~ s/\s+/\|/;
 			}
 
 			my @line = split (/\|/, $_);
@@ -1095,9 +1111,9 @@ sub linuxProcessGrabber {
 
 			if (-e "/proc/$line[1]/exe") {
 				(undef, $line[8]) = split (/-\>\ /, `/bin/ls -l /proc/$line[1]/exe`);
-                chop($line[8]);
+				chop($line[8]);
 
-                if ($sha{exe}{$line[8]}{expiry} < $epoch ) {
+				if ($sha{exe}{$line[8]}{expiry} < $epoch ) {
 					my $sw = [ Time::HiRes::gettimeofday( ) ];
 					open (my $file, "<:raw", $line[8]);
 
@@ -1117,7 +1133,7 @@ sub linuxProcessGrabber {
 						name => $line[6],
 						sha256 => $sha{exe}{$line[8]}{sha256},
 					};
-                }
+				}
 			}
 		}
 	}
@@ -1144,13 +1160,13 @@ sub linuxProcessGrabber {
 
 		$value{$pid} = {
 			Caption				=> $name,
-			CommandLine    		=> $command,
-			ExecutablePath 		=> $exepath,
-			HandleCount   		=> '0',
+			CommandLine			=> $command,
+			ExecutablePath		=> $exepath,
+			HandleCount			=> '0',
 			ProcessUserName		=> $user || '',
 			OtherOperationCount => '0',
 			OtherTransferCount	=> '0',
-			PageFileUsage     	=> '0',
+			PageFileUsage		=> '0',
 			ParentProcessId     => $ppid,
 			ParentProcessName   => $sha{pid}{$ppid}{name} || '',
 			PrivatePageCount    => '0',
@@ -1430,11 +1446,11 @@ sub pingTest {
 			eval {
 				$ssh = Net::SSH::Expect->new
 				  (
-				   host 		=> $arg{'computer'},
+				   host			=> $arg{'computer'},
 				   password		=> $arg{'cfg'}->{'pwd'},
-				   user 		=> $arg{'cfg'}->{'user'},
-				   raw_pty 		=> 1,
-				   timeout 		=> $arg{'pingtimeout'},
+				   user			=> $arg{'cfg'}->{'user'},
+				   raw_pty		=> 1,
+				   timeout		=> $arg{'pingtimeout'},
 				  );
 
 				$output = $ssh->login();
@@ -1484,6 +1500,8 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382(v=vs.85).aspx
 
 	&ipfixify::sysmetrics::profiling(
 	   config   => $config,
+       member   => $memberIP,
+	   lastX    => $lastX,
 	   psexec   => $psexec,
 	   cfg		=> \%cfg
 	);
@@ -1497,6 +1515,14 @@ The currently supported parameters are:
 =item * config
 
 the path and file name to the configuration file
+
+=item * member
+
+if this optional parameter is true, this will be the only IP profiled
+
+=item * lastX
+
+If present, profiling will go back X records for the newest record ID
 
 =item * psexec
 
@@ -1514,12 +1540,18 @@ The return output is a profile report.
 
 sub profiling {
 	my (%arg, %results, %errors);
-	my ($data, $member);
-	my (@errors, @file);
+	my ($data, $member, $lastX);
+	my (@errors, @file, @members);
 
 	%arg = (@_);
 
-	foreach (@{$arg{'cfg'}->{members}}) {
+	if ($arg{'member'}) {
+		push (@members, $arg{'member'});
+	} else {
+		@members = @{$arg{'cfg'}->{members}};
+	}
+
+	foreach (@members) {
 		my ($psexec, $cmdline);
 
 		print "+ profiling $_ ... ";
@@ -1528,9 +1560,24 @@ sub profiling {
 			$psexec = "--psexec $arg{psexec}";
 		}
 
-		$cmdline = "./ipfixify.exe --config $arg{'config'} $psexec --verbose --debug --syspoll $_";
+		if ($arg{lastX}) {
+			$lastX = "--last $arg{'lastX'}";
+		}
 
-		push 
+		$cmdline = join
+		  (
+		   ' ',
+		   './ipfixify.exe',
+		   "--config $arg{'config'}",
+		   $psexec,
+		   '--verbose',
+		   '--debug',
+		   $lastX,
+		   '--syspoll',
+		   $_
+		  );
+
+		push
 		  (
 		   @file,
 		   "----------------------------------\n",
@@ -1603,7 +1650,7 @@ sub profiling {
 
 	foreach (sort {$results{$b}{events}{total} <=> $results{$a}{events}{total}} keys %results) {
 		if ($arg{cfg}->{pollTimeOut} < $results{$_}{events}{collect_time}) {
-			push 
+			push
 			  (
 			   @errors,
 			   "$_ took longer than pollTimeOut, increase pollTimeOut ($arg{cfg}->{pollTimeOut})"
@@ -1678,9 +1725,9 @@ function.
 
 	&ipfixify::sysmetrics::sampling(
 	   cfg		=> \%cfg,
-       debug    => $debug,
-       member   => $sample,
-       record   => $sampleRecord
+	   debug    => $debug,
+	   member   => $sample,
+	   record   => $sampleRecord
 	);
 
 =back
@@ -1778,10 +1825,10 @@ sub sampling {
 		}
 	};
 
-    if ($@) {
-        print "\nRAW: $_\n";
-        print "\nERROR: $@\n";
-    }
+	if ($@) {
+		print "\nRAW: $_\n";
+		print "\nERROR: $@\n";
+	}
 
 	return;
 }
@@ -1855,7 +1902,7 @@ sub wmiInterfaceGrabber {
 			   packets_rx	=> $int[2],
 			   packets_tx	=> $int[3],
 			   portspeed	=> $int[4],
-			   ifIndex  	=> $row[1],
+			   ifIndex		=> $row[1],
 			   macaddress	=> $row[2],
 			  }
 		  }
@@ -1972,13 +2019,13 @@ sub wmiProcessGrabber {
 
 		$value{$pid} = {
 			Caption				=> $row[0]->{'Name'},
-			CommandLine    		=> $row[0]->{'CommandLine'},
-			ExecutablePath 		=> $row[0]->{'ExecutablePath'},
-			HandleCount   		=> $row[0]->{'HandleCount'},
+			CommandLine			=> $row[0]->{'CommandLine'},
+			ExecutablePath		=> $row[0]->{'ExecutablePath'},
+			HandleCount			=> $row[0]->{'HandleCount'},
 			ProcessUserName		=> '', # execute .method.getOwner()
 			OtherOperationCount => $row[0]->{'OtherOperationCount'},
 			OtherTransferCount	=> $row[0]->{'OtherTransferCount'},
-			PageFileUsage     	=> $row[0]->{'PageFileUsage'} * 1024,
+			PageFileUsage		=> $row[0]->{'PageFileUsage'} * 1024,
 			ParentProcessId     => $row[0]->{'ParentProcessId'},
 			ParentProcessName   => $sha{pid}{$row[0]->{'ParentProcessId'}}{name} || '',
 			PrivatePageCount    => $row[0]->{'PrivatePageCount'},
