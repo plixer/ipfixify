@@ -1653,7 +1653,8 @@ sub profiling {
 			push
 			  (
 			   @errors,
-			   "$_ took longer than pollTimeOut, increase pollTimeOut ($arg{cfg}->{pollTimeOut})"
+			   "$_ took longer than pollTimeOut, ".
+			   "increase pollTimeOut ($arg{cfg}->{pollTimeOut})"
 			  );
 		}
 
@@ -1674,6 +1675,16 @@ sub profiling {
 		  sprintf('%-8s', $results{$_}{events}{per_second}).
 		  sprintf('%-16s', sec2string($results{$_}{events}{collect_time})).
 		  "\n";
+
+		if ($arg{lastX}) {
+			my $total = $results{$_}{events}{total} || '0';
+			push
+			  (
+			   @errors,
+			   "$_ had $total user events (out of $arg{lastX}) ".
+			   int($results{$_}{events}{total}/$arg{lastX} * 100). '%'
+			  );
+		}
 	}
 
 	if ($data) {
@@ -1691,7 +1702,7 @@ sub profiling {
 		  '-'x77 ."\n".
 		  "\n";
 
-		print "Error Legend: ". Dumper \@errors;
+		print "Legend: ". Dumper \@errors;
 		print "\n";
 	} else {
 		print "\nNo Results, check configuration and run a permtest first";

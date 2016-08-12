@@ -444,7 +444,7 @@ sub pwdmgr {
 			if (length($linechunk)<15) { last; }
 		}
 
-		($user, $pwd) = split (/:/, $credentials);
+		($user, $pwd) = split (/:/, $credentials, 2);
 		return ($user, $pwd);
 	} else {
 		$key = pack("H16", "23123879217398271398712983721");  # min. 8 bytes
