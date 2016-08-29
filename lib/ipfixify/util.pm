@@ -445,6 +445,14 @@ sub pwdmgr {
 		}
 
 		($user, $pwd) = split (/:/, $credentials, 2);
+		$pwd =~ s/\n|\r|\0|\t//;
+
+		while ($pwd =~ m/\ $/) {
+			chop $pwd;
+		}
+
+		chop $pwd if ($pwd =~ m/\:$/);
+
 		return ($user, $pwd);
 	} else {
 		$key = pack("H16", "23123879217398271398712983721");  # min. 8 bytes
@@ -529,7 +537,7 @@ sub scrutCfgCredentials {
 		chomp ($password = <STDIN>);
 		ReadMode(0);
 
-		$password =~ s/\n|\r|\0//;
+		$password =~ s/\n|\r|\0|\t//;
 
 		print "\nVerify Password: ";
 
@@ -537,7 +545,7 @@ sub scrutCfgCredentials {
 		chomp ($verify = <STDIN>);
 		ReadMode(0);
 
-		$verify =~ s/\n|\r|\0//;
+		$verify =~ s/\n|\r|\0|\t//;
 
 		if (! $password) {
 			print "\n\n* ERROR: Password is blank\n";
@@ -550,7 +558,7 @@ sub scrutCfgCredentials {
 
 	$credentials = &ipfixify::util::pwdmgr
 	  (
-	   'credentials'	=> "$username:$password:",
+	   'credentials'	=> "$username:$password",
 	   'direction'		=> 'encode'
 	  );
 
