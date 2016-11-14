@@ -8,6 +8,7 @@ use Data::Dumper;
 use DBI;
 use Digest::MD5 qw(md5_hex);
 use Digest::SHA qw(sha256_hex);
+use Encode;
 use Exporter;
 use ipfixify::parse;
 use Time::HiRes;
@@ -1500,7 +1501,7 @@ https://msdn.microsoft.com/en-us/library/windows/desktop/ms681382(v=vs.85).aspx
 
 	&ipfixify::sysmetrics::profiling(
 	   config   => $config,
-       member   => $memberIP,
+	   member   => $memberIP,
 	   lastX    => $lastX,
 	   psexec   => $psexec,
 	   cfg		=> \%cfg
@@ -1788,53 +1789,80 @@ sub sampling {
 	$log = 'SECURITY';
 	$rec = $arg{record} ? $arg{record} : $eventLog->get_last_record_id($log);
 
-	($stdout, $stderr) = eval {
-		capture {
-			$eventLog->parse
-			  (
-			   eventlog => $log,
-			   startrec => $rec,
-			   endrec => $rec,
-			  );
+	{
+		local *STDERR;
+
+		open (STDERR, '>>', "$ENV{'TMPDIR'}/log.err");
+
+		($stdout, $stderr) = eval {
+			capture {
+				$eventLog->parse
+				  (
+				   eventlog => $log,
+				   startrec => $rec,
+				   endrec => $rec,
+				  );
+			};
 		};
-	};
 
-	if ($@) { print "$@\n"; }
+		if ($mode eq '2') {
+			print "\n------------------------------\n";
+			print "stdout\n\n$stdout\n";
+			print "\n\stderr\n\n$stderr\n" if ($stderr);
+			return;
+		}
 
-	if ($mode eq '2') {
-		print "\n------------------------------\n";
-		print "stdout\n\n$stdout\n";
-		print "\n\stderr\n\n$stderr\n" if ($stderr);
-		return;
-	}
-
-	foreach (split (/\|\|/, $stdout)) {
-		eval {
+		foreach (split (/\|\|/, $stdout)) {
 			my (@userMeta);
 			my $sliceNumber = '0';
 
-			$_ =~ s/\r|\n|\0|\t/:::/ig;
+			eval {
+				decode
+				  (
+				   'UTF-8',
+				   $_,
+				   Encode::FB_CROAK | Encode::LEAVE_SRC
+				  );
+			};
 
-			foreach my $slice (split (/:::/, $_)) {
-				$slice =~ s/^://;
-				if ($slice) {
-					push (@userMeta, "$sliceNumber : $slice");
-					$sliceNumber++;
-				}
+			if ($@) {
+				$_ = encode
+				  (
+				   'UTF-8',
+				   decode
+				   (
+					'cp1252', $_,
+					Encode::FB_QUIET | Encode::LEAVE_SRC
+				   )
+				  );
 			}
 
-			$_ =~ s/:::/\ /ig;
+			tr/\r\n\0/ /;
 
-			my $obj = $json->decode($_);
-			$userMeta[0] = "0 : $obj->{'event_id'}";
-			$obj->{'logname'} = uc($obj->{'logname'});
+			eval {
+				$_ =~ s/\r|\n|\0|\t/:::/ig;
 
-			$userMeta[1] = $obj->{'message'} =~ m/an account was successfully logged on/i ? '1 : 0' : '1 : 1';
+				foreach my $slice (split (/:::/, $_)) {
+					$slice =~ s/^://;
+					if ($slice) {
+						push (@userMeta, "$sliceNumber : $slice");
+						$sliceNumber++;
+					}
+				}
 
-			push (@{$obj->{'user_meta'}}, @userMeta);
-			print Dumper $obj;
+				$_ =~ s/:::/\ /ig;
+
+				my $obj = $json->decode($_);
+				$userMeta[0] = "0 : $obj->{'event_id'}";
+				$obj->{'logname'} = uc($obj->{'logname'});
+
+				$userMeta[1] = $obj->{'message'} =~ m/an account was successfully logged on|est correctement d ul/i ? '1 : 0' : '1 : 1';
+
+				push (@{$obj->{'user_meta'}}, @userMeta);
+				print Dumper $obj;
+			};
 		}
-	};
+	}
 
 	if ($@) {
 		print "\nRAW: $_\n";

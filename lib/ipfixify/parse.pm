@@ -1627,6 +1627,19 @@ sub userNameFlow {
             $loginType	= $arg{'record'}->[11];
             $srcAddr	= $arg{'record'}->[34];
             $loginState = $arg{'record'}->[1];
+		} elsif ($arg{'record'}->[15] eq 'ID de s') {
+			# french support
+            $user		= $arg{'record'}->[19];
+            $domain		= $arg{'record'}->[21];
+            $loginID	= $arg{'record'}->[23];
+            $loginType	= $arg{'record'}->[13];
+            $loginState = $arg{'record'}->[1];
+
+			if ($arg{'record'}->[37] eq 'Port source') {
+				$srcAddr	= $arg{'record'}->[36];
+			} else {
+				$srcAddr	= $arg{'record'}->[37];
+			}
         } else {
             $user		= $arg{'record'}->[16];
             $domain		= $arg{'record'}->[18];
@@ -1647,12 +1660,20 @@ sub userNameFlow {
         # ID 4647 might help grab some of those log offs not recorded
         # as part of 4634 (reference bug 10984)
 
-        $user		= $arg{'record'}->[5];
-        $domain		= $arg{'record'}->[7];
-        $loginID	= $arg{'record'}->[9];
-        $loginType	= $arg{'record'}->[0] eq '4634' ? $arg{'record'}->[11] : '255';
-        $srcAddr	= '0.0.0.255';
-        $loginState = 2;
+		if ($arg{'record'}->[5] eq 'Nom du compte') {
+			$user		= $arg{'record'}->[6];
+			$domain		= $arg{'record'}->[8];
+			$loginID	= $arg{'record'}->[10];
+			$loginType	= $arg{'record'}->[0] eq '4634' ? $arg{'record'}->[12] : '255';
+		} else {
+			$user		= $arg{'record'}->[5];
+			$domain		= $arg{'record'}->[7];
+			$loginID	= $arg{'record'}->[9];
+			$loginType	= $arg{'record'}->[0] eq '4634' ? $arg{'record'}->[11] : '255';
+		}
+
+		$srcAddr	= '0.0.0.255';
+		$loginState = 2;
     }
 
     if ($arg{'record'}->[0] eq '6272') {
