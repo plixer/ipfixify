@@ -510,7 +510,7 @@ sub scrutCfgCredentials {
 	print $arg{'version'};
 
 	if (! -e $arg{'config'}) {
-		print "\n* ERROR: $arg{'original'} not found!\n";
+		print "\n* ERROR: $arg{'config'} not found!\n";
 		exit(0);
 	}
 
@@ -895,8 +895,8 @@ sub serviceMgr {
 					exit(0);
 				}
 
-				if (! -e "$pwd/$arg{'config'}") {
-					print "Error: can't locate $arg{config} in $pwd\n";
+				if (! -e $arg{'config'}) {
+					print "Error: can't locate config file $arg{config}\n";
 					exit(0);
 				}
 
