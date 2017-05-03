@@ -1627,6 +1627,13 @@ sub userNameFlow {
             $loginType	= $arg{'record'}->[11];
             $srcAddr	= $arg{'record'}->[34];
             $loginState = $arg{'record'}->[1];
+		} elsif ($arg{'record'}->[11] eq 'Security ID') {
+            $user		= $arg{'record'}->[14];
+            $domain		= $arg{'record'}->[16];
+            $loginID	= $arg{'record'}->[18];
+            $loginType	= $arg{'record'}->[9];
+            $srcAddr	= $arg{'record'}->[28];
+            $loginState = $arg{'record'}->[1];
 		} elsif ($arg{'record'}->[15] eq 'ID de s') {
 			# french support
             $user		= $arg{'record'}->[19];
@@ -1760,7 +1767,7 @@ sub userNameFlow {
            $srcAddr,
            scalar time(),
            $loginState,
-           $loginType,
+           int($loginType),
            encode('UTF-8', decode('UTF-8', lc($loginID), Encode::FB_DEFAULT|Encode::LEAVE_SRC)),
            1
         );
