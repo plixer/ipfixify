@@ -821,11 +821,12 @@ Andrew Feren  C<< <andrewf@plixer.com> >>
 
 =head1 ACKNOWLEDGMENTS
 
-Thanks to Plixer International for their support.
+Thanks to Plixer for their support.
 
 =head1 LICENCE AND COPYRIGHT
 
-Copyright (c) 2013, Andrew Feren C<< <andrewf@plixer.com> >>. All rights reserved.
+Copyright (c) 2013 - 2017, Andrew Feren C<< <andrewf@plixer.com> >>. 
+All rights reserved.
 
 This module is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself. See L<perlartistic>.

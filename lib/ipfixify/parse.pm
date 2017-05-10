@@ -1859,7 +1859,8 @@ None at this time
 
 =head1 COPYRIGHT AND LICENSE
 
-This file is the property of Plixer International, Inc.
+Copyright (C) 2012 - 2017 Plixer, MIT License
+Visit https://github.com/plixer/ipfixify for wiki and source
 
 =head1 AUTHOR
 

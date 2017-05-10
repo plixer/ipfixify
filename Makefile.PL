@@ -9,7 +9,7 @@ WriteMakefile
      PREREQ_PM   => { },
      ($] >= 5.005 ?    ## Add these new keywords supported since 5.005
       (
-       AUTHOR    => 'Plixer International, Inc. (www.plixer.com)') : ()
+       AUTHOR    => 'Plixer (www.plixer.com)') : ()
      ),
     );
 

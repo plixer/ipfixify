@@ -179,7 +179,7 @@ None at this time
 
 =head1 COPYRIGHT AND LICENSE
 
-This file was provided by Plixer International, Inc. It can be modified and
+This file was provided by Plixer. It can be modified and
 distributed under the same terms and conditions as MRTG
 
 =head1 AUTHOR

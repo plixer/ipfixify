@@ -2,7 +2,7 @@
                             IPFIXIFY ASTERISK CDR
 -----------------------------------------------------------------------------
 
-Author      : Plixer International, Inc.
+Author      : Plixer
 Description : Send Asterisk CDR records to an IPFIX Collector
 
 -----------------------------------------------------------------------------

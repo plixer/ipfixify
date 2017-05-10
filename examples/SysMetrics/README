@@ -2,7 +2,7 @@
                        IPFIXIFY YOUR SYSTEM METRICS
 -----------------------------------------------------------------------------
 
-Author	    : Plixer International, Inc.
+Author	    : Plixer
 Description : Collect CPU, Memory, Microsoft EventLogs, and process details
               from Microsoft Windows Servers. Linux statistics of a similar
               nature can also be collected.

@@ -2,7 +2,7 @@
                        IPFIXIFY APACHE ACCESS.LOG
 -----------------------------------------------------------------------------
 
-Author      : Plixer International, Inc.
+Author      : Plixer
 Description : Send a Apache2 access.log to an IPFIX Collector
 
 -----------------------------------------------------------------------------
