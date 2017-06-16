@@ -1625,15 +1625,25 @@ sub userNameFlow {
             $domain		= $arg{'record'}->[20];
             $loginID	= $arg{'record'}->[22];
             $loginType	= $arg{'record'}->[11];
-            $srcAddr	= $arg{'record'}->[34];
             $loginState = $arg{'record'}->[1];
+
+			if ($arg{'record'}->[34] eq 'Source Port') {
+				$srcAddr = $arg{'record'}->[33];
+			} else {
+				$srcAddr = $arg{'record'}->[34];
+			}
 		} elsif ($arg{'record'}->[11] eq 'Security ID') {
             $user		= $arg{'record'}->[14];
             $domain		= $arg{'record'}->[16];
             $loginID	= $arg{'record'}->[18];
             $loginType	= $arg{'record'}->[9];
-            $srcAddr	= $arg{'record'}->[28];
             $loginState = $arg{'record'}->[1];
+
+			if ($arg{'record'}->[28] eq 'Source Port') {
+				$srcAddr = $arg{'record'}->[27];
+			} else {
+				$srcAddr = $arg{'record'}->[28];
+			}
 		} elsif ($arg{'record'}->[15] eq 'ID de s') {
 			# french support
             $user		= $arg{'record'}->[19];
@@ -1643,9 +1653,9 @@ sub userNameFlow {
             $loginState = $arg{'record'}->[1];
 
 			if ($arg{'record'}->[37] eq 'Port source') {
-				$srcAddr	= $arg{'record'}->[36];
+				$srcAddr = $arg{'record'}->[36];
 			} else {
-				$srcAddr	= $arg{'record'}->[37];
+				$srcAddr = $arg{'record'}->[37];
 			}
         } else {
             $user		= $arg{'record'}->[16];
@@ -1655,9 +1665,9 @@ sub userNameFlow {
             $loginState = $arg{'record'}->[1];
 
 			if ($arg{'record'}->[32] eq 'Source Port') {
-				$srcAddr	= $arg{'record'}->[31];
+				$srcAddr = $arg{'record'}->[31];
 			} else {
-				$srcAddr	= $arg{'record'}->[32];
+				$srcAddr = $arg{'record'}->[32];
 			}
         }
     }
