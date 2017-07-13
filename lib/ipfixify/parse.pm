@@ -7,7 +7,8 @@ use Carp qw(carp);
 use Config::IniFiles;
 use Data::Dumper;
 use Date::Parse;
-use DateTime::Locale::en_US;
+use DateTime::Locale;
+BEGIN { eval{require DateTime::Locale::en_US;};}
 use DateTime::Format::Builder::Parser::Dispatch;
 use DateTime::Format::Builder::Parser::generic;
 use DateTime::Format::Builder::Parser::Quick;
