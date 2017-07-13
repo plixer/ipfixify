@@ -415,6 +415,8 @@ sub eventLogGrab {
 			my (@userMeta);
 
 			$_ =~ s/\r|\n|\0|\t/:::/ig;
+			$_ =~ s/\ "/\ \\"/ig;
+			$_ =~ s/"\ /\\"\ /ig;
 
 			foreach my $slice (split (/:::/, $_)) {
 				$slice =~ s/^://;
