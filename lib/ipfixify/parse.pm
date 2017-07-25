@@ -1605,7 +1605,7 @@ sub userNameFlow {
     my (%arg, %radius);
     my (
         $user, $srcAddr, $domain, $loginID, $loginType, $userFlow,
-        $loginState, $flowIt
+        $loginState, $flowIt, $wsName
     );
 
     %arg = (@_);
@@ -1630,8 +1630,10 @@ sub userNameFlow {
 
 			if ($arg{'record'}->[34] eq 'Source Port') {
 				$srcAddr = $arg{'record'}->[33];
+				$wsName = $arg{'record'}->[31];
 			} else {
 				$srcAddr = $arg{'record'}->[34];
+				$wsName = $arg{'record'}->[32];
 			}
 		} elsif ($arg{'record'}->[11] eq 'Security ID') {
             $user		= $arg{'record'}->[14];
@@ -1642,8 +1644,10 @@ sub userNameFlow {
 
 			if ($arg{'record'}->[28] eq 'Source Port') {
 				$srcAddr = $arg{'record'}->[27];
+				$wsName = $arg{'record'}->[25];
 			} else {
 				$srcAddr = $arg{'record'}->[28];
+				$wsName = $arg{'record'}->[26];
 			}
 		} elsif ($arg{'record'}->[15] eq 'ID de s') {
 			# french support
@@ -1655,8 +1659,12 @@ sub userNameFlow {
 
 			if ($arg{'record'}->[37] eq 'Port source') {
 				$srcAddr = $arg{'record'}->[36];
+				# not sure what field it is from our current output
+				$wsName = "";
 			} else {
 				$srcAddr = $arg{'record'}->[37];
+				# not sure what field it is from our current output
+				$wsName = "";
 			}
         } else {
             $user		= $arg{'record'}->[16];
@@ -1667,10 +1675,16 @@ sub userNameFlow {
 
 			if ($arg{'record'}->[32] eq 'Source Port') {
 				$srcAddr = $arg{'record'}->[31];
+				$wsName = $arg{'record'}->[29];
 			} else {
 				$srcAddr = $arg{'record'}->[32];
+				$wsName = $arg{'record'}->[30];
 			}
         }
+
+		if ($wsName eq 'Workstation Name') {
+			$wsName = "";
+		}
     }
 
     if ($arg{'record'}->[0] eq '4634' || $arg{'record'}->[0] eq '4647') {
@@ -1776,6 +1790,7 @@ sub userNameFlow {
            $arg{'machineID'},
            encode('UTF-8', decode('UTF-8', lc($username), Encode::FB_DEFAULT|Encode::LEAVE_SRC)),
            $srcAddr,
+           encode('UTF-8', decode('UTF-8', $wsName, Encode::FB_DEFAULT|Encode::LEAVE_SRC)),
            scalar time(),
            $loginState,
            int($loginType),

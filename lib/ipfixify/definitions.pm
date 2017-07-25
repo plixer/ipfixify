@@ -366,7 +366,7 @@ sub tempSelect {
 	} elsif ($arg{flowCache} == 26) {
 		%cfg =
 			(
-			 'columnCount'	=> 8,
+			 'columnCount'	=> 9,
 			 'id'						=> 'EpUidByIp',
 			 'name'					=> 'IPFIXify: Endpoint User Identity (IP Address)',
 			 'originator'		=> 'ipfixifymachineid',
@@ -374,6 +374,7 @@ sub tempSelect {
 					ipfixifymachineid(13745/3030)<string>[32]
 					username(371)<string>
 					sourceipv4address(8)<ipv4Address>{xform:a2b}
+					ipfixifymachinename(13745/3002)<string>
 					observationtimeseconds(322)<dateTimeSeconds>
 					ipfixifyloginstate(13745/3023)<unsigned8>
 					ipfixifylogintype(13745/3024)<unsigned8>
@@ -383,7 +384,7 @@ sub tempSelect {
 	} elsif ($arg{flowCache} == 27) {
 		%cfg =
 			(
-			 'columnCount'	=> 8,
+			 'columnCount'	=> 9,
 			 'id'						=> 'EpUidbyMac',
 			 'name'					=> 'IPFIXify: Endpoint User Identity (Mac Address)',
 			 'originator'		=> 'ipfixifymachineid',
@@ -391,6 +392,7 @@ sub tempSelect {
 					ipfixifymachineid(13745/3030)<string>[32]
 					username(371)<string>
 					sourcemacaddress(56)<macAddress>
+					ipfixifymachinename(13745/3002)<string>
 					observationtimeseconds(322)<dateTimeSeconds>
 					ipfixifyloginstate(13745/3023)<unsigned8>
 					ipfixifylogintype(13745/3024)<unsigned8>
