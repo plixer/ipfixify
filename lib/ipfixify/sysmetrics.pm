@@ -384,16 +384,32 @@ sub eventLogGrab {
 		@eventfilter = ();
 	}
 
-	($stdout, $stderr) = eval {
-		capture {
-			$arg{'elh'}->parse
-			  (
-			   eventlog => $arg{'eventlog'},
-			   eventfilter => \@eventfilter,
-			   startrec => $arg{'startrec'},
-			  );
+	if ($arg{'cfg'}->{'chunking'}) {
+		my $endrec = $arg{startrec} + $arg{'cfg'}->{'chunking'};
+
+		($stdout, $stderr) = eval {
+			capture {
+				$arg{'elh'}->parse
+				  (
+				   eventlog => $arg{'eventlog'},
+				   eventfilter => \@eventfilter,
+				   startrec => $arg{'startrec'},
+				   endrec	=> $endrec
+				  );
+			};
 		};
-	};
+	} else {
+		($stdout, $stderr) = eval {
+			capture {
+				$arg{'elh'}->parse
+				  (
+				   eventlog => $arg{'eventlog'},
+				   eventfilter => \@eventfilter,
+				   startrec => $arg{'startrec'},
+				  );
+			};
+		};
+	}
 
 	if ($stdout =~ m/error: 5/) {
 		print "[Error]: Invalid Login Credentials\n"

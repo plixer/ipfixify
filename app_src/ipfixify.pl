@@ -61,11 +61,11 @@ our (%Config, %file, %flowCache, %active);
 my (%cfg, %thread, %delta);
 my (@eventLogToGather, @goodList);
 my (
-    $config, $eventlog, $filename, $svc, $svcName, $syslog, $stream,
-    $version, $testOnly, $verbose, $hostip, $originator, $CwF,
-    $CwFTime, $sysmetrics, $psexec, $syspoll, $sourceip, $smProfile,
-    $streamCollectors, $queueSysMetricGather, $queueSysMetricDevices,
-    $shared_flowCache6, $honeynet, $syslogSend, $smPermTest, $ipinfo,
+	$config, $eventlog, $filename, $svc, $svcName, $syslog, $stream,
+	$version, $testOnly, $verbose, $hostip, $originator, $CwF,
+	$CwFTime, $sysmetrics, $psexec, $syspoll, $sourceip, $smProfile,
+	$streamCollectors, $queueSysMetricGather, $queueSysMetricDevices,
+	$shared_flowCache6, $honeynet, $syslogSend, $smPermTest, $ipinfo,
 	$smSample, $sampleRecord, $lastX, $smProfileMember
 );
 
@@ -227,12 +227,12 @@ sub ipfixifyStartup {
 		exit(0);
 	}
 
-    if ($smProfile && $cfg{'mode'} eq 'sysmetrics') {
+	if ($smProfile && $cfg{'mode'} eq 'sysmetrics') {
 		print "\n$version\n" unless ($verbose);
 
-        if ($sourceip) {
-            $originator = $sourceip;
-        }
+		if ($sourceip) {
+			$originator = $sourceip;
+		}
 
 		&ipfixify::sysmetrics::profiling
 		  (
@@ -246,7 +246,7 @@ sub ipfixifyStartup {
 		exit(0);
 	}
 
-    if ($smSample && $cfg{'mode'} eq 'sysmetrics') {
+	if ($smSample && $cfg{'mode'} eq 'sysmetrics') {
 		print "\n$version\n" unless ($verbose);
 
 		&ipfixify::sysmetrics::sampling
@@ -400,7 +400,7 @@ sub ipfixifyStartup {
 			&pollSysMetricsLinuxEndpoint
 			  (
 			   syspoll		=> $syspoll,
-  		       lastX        => $lastX,
+			   lastX        => $lastX,
 			   gps			=> $gps || '0,0',
 			   verbose		=> $verbose,
 			   originator	=> $originator
@@ -995,6 +995,10 @@ sub pollSysMetricsHost {
 		}
 
 		delete $active{$computer};
+
+		if ($cfg{'chunking'}) {
+			$queueSysMetricGather->enqueue($computer);
+		}
 
 		## THIS IS A VERY IMPORTANT BLOCK BUT IT'S COMMENTED
 		## OUT. RIGHT NOW WE LAUNCH SEPARATE IPFIXIFY.EXE TO POLL THE
@@ -1827,13 +1831,13 @@ sub pollSysMetricsWindowsEndpoint {
 				$timer = &ipfixify::sysmetrics::eventLogParse
 				  (
 				   flowcacheid  => $cacheid,
-				   eventlog	    => $el,
+				   eventlog		=> $el,
 				   lastX        => $arg{'lastX'},
 				   elh			=> $events,
 				   tid			=> $arg{'thread_id'},
 				   cfg          => \%cfg,
 				   flowCache	=> \%flowCache,
-				   computer	    => $arg{'computer'},
+				   computer		=> $arg{'computer'},
 				   originator	=> $arg{'originator'},
 				   machineID	=> $machineID,
 				   verbose		=> $verbose
