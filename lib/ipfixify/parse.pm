@@ -1625,7 +1625,6 @@ sub userNameFlow {
 
 	if ($arg{'record'}->[0] eq '4624') {
 		# For Log ins: Event ID 4624
-
 		if ($arg{'record'}->[15] eq 'Security ID') {
 			$user		= $arg{'record'}->[18];
 			$domain		= $arg{'record'}->[20];
@@ -1670,6 +1669,20 @@ sub userNameFlow {
 				$srcAddr = $arg{'record'}->[37];
 				# not sure what field it is from our current output
 				$wsName = "";
+			}
+		} elsif ($arg{'record'}->[22] eq 'Security ID') {
+			$user		= $arg{'record'}->[25];
+			$domain		= $arg{'record'}->[27];
+			$loginID	= $arg{'record'}->[29];
+			$loginType	= $arg{'record'}->[9];
+			$loginState = $arg{'record'}->[1];
+
+			if ($arg{'record'}->[48] eq 'Source Port') {
+				$srcAddr = $arg{'record'}->[47];
+				$wsName = $arg{'record'}->[45];
+			} else {
+				$srcAddr = $arg{'record'}->[48];
+				$wsName = $arg{'record'}->[46];
 			}
 		} else {
 			$user		= $arg{'record'}->[16];
